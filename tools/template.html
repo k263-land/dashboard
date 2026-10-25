@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>판매·손익 대시보드</title>
+<style>
+:root{
+  --bg1:#e8eeeb; --bg2:#d9e4df;
+  --card:#ffffff; --ink:#1d2733; --ink2:#4b5663; --ink3:#78828d;
+  --line:#e3e8e6; --grid:#edf1ef;
+  --navy:#34405a; --up:#1f4f9f; --dn:#b4501f;
+  --side:#232b33; --side2:#2e3841; --mint:#9cc9b5;
+  --r:20px;
+  --font:"Pretendard Variable","Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font);color:var(--ink);background:linear-gradient(160deg,var(--bg1),var(--bg2));min-height:100vh;font-variant-numeric:tabular-nums;line-height:1.4}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:left}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #2a78d6;outline-offset:2px}
+.layout{max-width:1480px;margin:0 auto;padding:14px;display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+@media(min-width:1100px){.layout{grid-template-columns:minmax(0,1fr) 288px;padding:22px;gap:20px;align-items:start}}
+main{display:flex;flex-direction:column;gap:14px;min-width:0}
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.top h1{font-size:clamp(19px,2.4vw,24px);font-weight:800;letter-spacing:-.02em}
+.top .sub{font-size:12.5px;color:var(--ink2);margin-top:2px}
+.sample{display:inline-block;margin-left:8px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:#fff;border:1px solid var(--line);color:var(--ink2);vertical-align:middle}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:12px;font-weight:700;font-size:13px;background:#fff;border:1px solid var(--line);box-shadow:0 1px 2px rgba(20,40,60,.06)}
+.btn.pri{background:var(--navy);color:#fff;border-color:var(--navy)}
+.top-actions{display:flex;gap:8px}
+@media(min-width:1100px){.top .only-m{display:none}}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none;align-items:center}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:8px 14px;border-radius:99px;background:#fff;border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--ink2);white-space:nowrap}
+.chip[aria-pressed=true]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.chip[aria-pressed=true]:before{content:"✓ ";font-weight:800}
+.chip.tag{background:#fff;border-color:var(--navy);color:var(--navy)}
+.chips .gap{flex:none;width:1px;height:20px;background:#b9c6c0;margin:0 2px}
+
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media(min-width:760px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}}
+.kpi{position:relative;border-radius:var(--r);padding:14px 14px 12px;color:#fff;display:flex;flex-direction:column;gap:6px;min-height:176px;overflow:hidden;box-shadow:0 8px 20px -10px rgba(30,45,60,.45);transition:transform .15s}
+.kpi:hover{transform:translateY(-2px)}
+.kpi.k1{background:linear-gradient(150deg,#3d4a66,#2f3a53)}
+.kpi.k2{background:linear-gradient(150deg,#5a917c,#46786a)}
+.kpi.k3{background:linear-gradient(150deg,#e4bd7c,#d4a65f);color:#25201a}
+.kpi.k4{background:linear-gradient(150deg,#e8a784,#d98f68);color:#2a1d16}
+.kpi.on{box-shadow:0 0 0 3px #fff,0 0 0 6px var(--ink),0 10px 22px -10px rgba(30,45,60,.5)}
+.k-top{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.k-name{font-size:13.5px;font-weight:800}
+.k-tag{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:99px;background:rgba(255,255,255,.92);color:var(--ink);visibility:hidden;white-space:nowrap}
+.kpi.on .k-tag{visibility:visible}
+.k-per{font-size:11px;opacity:.88;margin-top:-4px}
+.k-val{font-size:clamp(23px,3.4vw,31px);font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.k-val small{font-size:11px;font-weight:600;margin-left:4px;opacity:.85}
+.k-rows{display:flex;flex-direction:column;gap:3px;font-size:11.5px;position:relative;z-index:1}
+.k-rows div{display:flex;justify-content:space-between;gap:6px;align-items:center}
+.k-rows span.l{opacity:.88}
+@media(max-width:420px){.kpi{padding:12px 11px 10px;min-height:168px}.k-name{font-size:13px}.k-tag{font-size:10px;padding:2px 5px}.k-rows{font-size:11px}.d{font-size:11px;padding:1px 6px}}
+.spark{position:absolute;right:0;bottom:0;left:0;height:56px;opacity:.28;pointer-events:none}
+.d{display:inline-block;font-weight:800;font-size:11.5px;padding:1px 7px;border-radius:99px;background:rgba(255,255,255,.93);white-space:nowrap;color:var(--ink)}
+.d.up{color:var(--up)} .d.dn{color:var(--dn)} .d.flat,.d.na{color:var(--ink2)}
+.panel .d{background:#eef2f6}
+
+.panel{background:var(--card);border-radius:var(--r);padding:16px;box-shadow:0 8px 24px -14px rgba(30,45,60,.35);min-width:0}
+.p-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.p-head h2{font-size:15px;font-weight:800;letter-spacing:-.01em}
+.p-head .note{font-size:11.5px;color:var(--ink3);margin-top:2px}
+.ctrls{display:flex;gap:8px;flex-wrap:wrap}
+.seg{display:inline-flex;background:#eef2f0;border-radius:11px;padding:3px;gap:2px}
+.seg button{padding:6px 12px;border-radius:9px;font-size:12.5px;font-weight:700;color:var(--ink2)}
+.seg button[aria-pressed=true]{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(20,40,60,.15)}
+.nodata{padding:34px 12px;text-align:center;color:var(--ink2);font-size:13px;line-height:1.7}
+.nodata .btn{margin-top:10px}
+
+.gcard.on{box-shadow:0 0 0 3px #fff,0 0 0 6px var(--ink),0 10px 22px -10px rgba(30,45,60,.5)}
+.gtitle{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%}
+.gtitle .k-tag{background:var(--navy);color:#fff}
+.gcard.on .k-tag{visibility:visible}
+.gbar{display:flex;height:14px;border-radius:7px;overflow:hidden;gap:2px;margin:12px 0 12px;background:#fff}
+.gbar i{display:block;height:100%}
+.gitems{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media(min-width:620px){.gitems{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.gi{border:1px solid var(--line);border-radius:14px;padding:9px 10px;display:flex;flex-direction:column;gap:2px;background:#fafcfb}
+.gi.sel{border-color:var(--ink);background:#fff;box-shadow:inset 0 0 0 1px var(--ink)}
+.gi.dim{opacity:.5}
+.gi .n{font-size:12.5px;font-weight:800;display:flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:3px;display:inline-block;flex:none}
+.gi .v{font-size:16px;font-weight:800}
+.gi .s{font-size:11.5px;color:var(--ink2);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+
+.charts{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+@media(min-width:900px){.charts{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}}
+.chart-box{width:100%;position:relative}
+.chart-box svg{display:block;width:100%;height:auto;overflow:visible}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink2);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.ln{display:inline-block;width:20px;height:0;border-top:3px solid;flex:none}
+.tip{position:fixed;z-index:80;pointer-events:none;background:#1d2733;color:#fff;font-size:12px;padding:7px 10px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:260px;line-height:1.5;opacity:0;transition:opacity .08s}
+.tip.on{opacity:1}
+.comp{display:flex;flex-direction:column;gap:12px;align-items:center}
+.donut{width:min(210px,64%);flex:none}
+.clist{width:100%;display:flex;flex-direction:column;gap:2px}
+.crow{display:grid;grid-template-columns:12px minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:7px 8px;border-radius:10px;width:100%}
+.crow:hover{background:#f3f6f5}
+.crow.sel{background:#eef2f0;box-shadow:inset 0 0 0 1.5px var(--ink)}
+.crow .nm{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.crow .vv{font-size:13px;font-weight:700;text-align:right}
+.crow .pp{font-size:12px;color:var(--ink2);min-width:46px;text-align:right}
+.mrow{display:grid;grid-template-columns:44px minmax(0,1fr) 72px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--grid);width:100%}
+.mrow .nm{font-size:13px;font-weight:800}
+.mtrack{position:relative;height:14px;background:#f2f5f4;border-radius:7px}
+.mtrack i{position:absolute;top:2px;bottom:2px;border-radius:5px;left:0;background:#34405a}
+.mrow .vv{font-size:13px;font-weight:800;text-align:right}
+.mrow .vv .lp{display:block;font-size:10.5px;font-weight:600;color:var(--ink3);margin-top:1px}
+.ln{display:inline-block;width:18px;height:0;border-top:3px solid #34405a;vertical-align:middle;margin-right:4px}.ln.dsh{border-top:2px dashed #8a94a6}
+.ttable td.mgb,.dtable td.mgb{font-weight:800}
+.mrow.sel{background:#f3f6f5}
+.subnote{font-size:11.5px;color:var(--ink3);margin-top:8px}
+
+.twrap{overflow-x:auto;margin:0 -6px;padding:0 6px}
+.ttable{width:100%;min-width:720px;border-collapse:collapse;font-size:13px}
+.ttable th{font-size:11.5px;color:var(--ink3);font-weight:700;border-bottom:1px solid var(--line);padding:0;white-space:nowrap;background:#fff}
+.ttable th button{width:100%;padding:9px 8px;font-weight:700;font-size:11.5px;color:var(--ink3);display:flex;gap:3px;align-items:center}
+.ttable th.num button{justify-content:flex-end}
+.ttable th button.on{color:var(--ink)}
+.ttable td{padding:9px 8px;border-bottom:1px solid var(--grid);white-space:nowrap}
+.ttable td.num,.ttable th.num{text-align:right}
+.ttable th.fc,.ttable td.fc{position:sticky;left:0;background:#fff;z-index:1;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.ttable td.fc{font-weight:800}
+.ttable td.mut{color:var(--ink2)}
+.ttable .hd-s{display:none}
+@media(max-width:480px){.ttable .hd-l{display:none}.ttable .hd-s{display:inline}.ttable td.mut,.ttable td.nb{font-size:11.5px}.ttable td.sxm{padding-left:2px;padding-right:2px}}
+.ttable td.nb{font-weight:800}
+.ttable td.fc.mut{font-weight:400}
+.ttable tr.sum td.fc.mut{font-weight:800}
+.ttable tr.sum td{background:#f6f8f7;font-weight:800}
+.ttable tr.sum td.fc{background:#f6f8f7}
+@media(max-width:480px){.ttable{min-width:0}.ttable td,.ttable th button{padding:9px 4px;font-size:12px}.ttable .rk,.ttable [data-c=share],.ttable [data-c=gp]{display:none}.ttable th.fc,.ttable td.fc{max-width:86px}.twrap{margin:0 -10px;padding:0 10px}.ttable .d{font-size:11px;padding:1px 5px}}
+.tmore{margin-top:10px;width:100%;text-align:center;padding:10px;border-radius:12px;background:#f2f5f4;font-weight:700;font-size:13px}
+
+.side{background:var(--side);color:#e8eef0;border-radius:24px;padding:18px;display:flex;flex-direction:column;gap:16px}
+@media(min-width:1100px){.side{position:sticky;top:22px}}
+@media(max-width:1099px){
+  .side{position:fixed;left:0;right:0;bottom:0;z-index:50;border-radius:24px 24px 0 0;max-height:86vh;overflow:auto;transform:translateY(104%);visibility:hidden;transition:transform .22s ease,visibility 0s .22s;padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+  .side.open{transform:none;visibility:visible;transition:transform .22s ease,visibility 0s}
+  .backdrop{position:fixed;inset:0;background:rgba(10,18,24,.45);z-index:40;display:none}
+  .backdrop.on{display:block}
+}
+.side h3{font-size:15px;font-weight:800;display:flex;justify-content:space-between;align-items:center}
+.fld{display:flex;flex-direction:column;gap:7px}
+.fld .lb{font-size:12px;color:#aebcc3;font-weight:700}
+.side select{width:100%;padding:10px 12px;border-radius:12px;background:var(--side2);color:#fff;border:1px solid #3a4651;font:inherit;font-size:14px}
+.side .seg{background:var(--side2);display:flex}
+.side .seg button{flex:1;text-align:center;color:#c9d5da}
+.side .seg button[aria-pressed=true]{background:var(--mint);color:#16241d}
+.side .seg.g2{display:grid;grid-template-columns:1fr 1fr}
+.side .hint{font-size:11.5px;color:#93a3ab;line-height:1.5}
+.side .btn.main{background:var(--mint);color:#16241d;border:0;justify-content:center;padding:12px;font-size:14px}
+.side .xclose{padding:4px 8px;border-radius:8px;background:var(--side2);color:#fff;font-size:12px}
+@media(min-width:1100px){.side .xclose{display:none}}
+.foot{font-size:11.5px;color:var(--ink2);line-height:1.6;padding:0 4px 18px}
+
+.detail{position:fixed;inset:0;z-index:70;background:rgba(10,18,24,.5);display:none;align-items:flex-end;justify-content:center}
+.detail.on{display:flex}
+.dpanel{background:#f3f6f5;width:100%;max-width:1200px;height:94vh;border-radius:24px 24px 0 0;display:flex;flex-direction:column;overflow:hidden}
+@media(min-width:900px){.detail{align-items:center}.dpanel{height:88vh;border-radius:24px}}
+.dhead{display:flex;justify-content:space-between;align-items:center;padding:16px 18px 8px;gap:8px}
+.dhead h2{font-size:17px;font-weight:800}
+.dtools{display:flex;flex-wrap:wrap;gap:8px;padding:6px 18px 10px;align-items:center}
+.dtools select,.dtools input{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;font-size:13px}
+.dtools input{min-width:0;flex:1 1 120px}
+.dbody{flex:1;overflow:auto;padding:0 12px 16px}
+.dtable{min-width:820px;width:100%;border-collapse:separate;border-spacing:0;background:#fff;border-radius:16px;font-size:13px}
+.dtable th{position:sticky;top:0;background:#fff;font-size:11.5px;color:var(--ink3);text-align:right;padding:10px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.dtable td{padding:9px 8px;border-bottom:1px solid var(--grid);text-align:right;white-space:nowrap}
+.dtable th:first-child,.dtable td:first-child{text-align:left;position:sticky;left:0;background:#fff;font-weight:800;max-width:170px;overflow:hidden;text-overflow:ellipsis;z-index:1}
+.dtable tr.sum td{background:#f6f8f7;font-weight:800}
+.dnote{font-size:11.5px;color:var(--ink2);padding:8px 6px}
+.refbox{margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+.refbox h3{font-size:13.5px;font-weight:800}
+.refbox .note{font-size:11.5px;color:var(--ink3);margin:2px 0 8px}
+.rtable{width:100%;min-width:820px;border-collapse:collapse;font-size:12px}
+.rtable th{font-size:11px;color:var(--ink3);font-weight:700;padding:7px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;background:#fff}
+.rtable td{padding:7px 6px;text-align:right;border-bottom:1px solid var(--grid);white-space:nowrap}
+.rtable th:first-child,.rtable td:first-child{text-align:left;position:sticky;left:0;background:#fff;font-weight:800;z-index:1}
+.rtable tr.cur td{background:#f3f7f5}.rtable tr.cur td:first-child{background:#f3f7f5}
+.rtable tr.dl td{font-size:11px;color:var(--ink2);background:#fff}
+.rtable td.tot,.rtable th.tot{border-left:1px solid var(--line)}
+.rtable td.tot{font-weight:800}
+.rtable td.qs{background:#f6f8f7;font-weight:700}.rtable th.qs{background:#f6f8f7;color:var(--ink2)}
+.rtable td.qs.pt{font-style:italic;color:var(--ink2)}
+.rtable td.na,.rtable .na{color:#b0b8c0}
+.rtable.v{min-width:0;font-size:12.5px}.rtable.v td.dc,.rtable.v th.dc{font-size:11px;color:var(--ink2);font-weight:600}.rtable.v tr.sm td{background:#f6f8f7;font-weight:800;border-top:1px solid var(--line)}.rtable.v tr.cur td{background:#eef4f1}.rtable.v th{text-align:right}
+.rtable small{font-weight:600;color:var(--ink3);font-size:10.5px;margin-left:3px}
+.u{color:var(--up);font-weight:800}.n{color:var(--dn);font-weight:800}
+.dsub{display:flex;flex-wrap:wrap;gap:8px;padding:0 18px 6px;align-items:center}
+.dsub select{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;font-size:13px}
+.crumb{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:6px 6px 2px}
+.crumb button{padding:6px 11px;border-radius:99px;background:#fff;border:1px solid var(--line);font-size:12.5px;font-weight:700;color:var(--ink2)}
+.crumb button[aria-current=true]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.crumb .sep{color:var(--ink3);font-weight:800}
+.dn-btn{font-weight:800;font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;padding:2px 0}
+.dn-btn span{color:var(--ink3);margin-left:4px}
+.dtable.mini th:first-child,.dtable.mini td:first-child{max-width:90px}
+.blk{background:#fff;border-radius:16px;padding:12px 12px 6px;margin:10px 0}
+.blk-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.blk-h b{font-size:14px}
+.blk-h span{font-size:12px;color:var(--ink2)}
+.blk .twrap{margin:0 -4px;padding:0 4px}
+.blk .rtable{min-width:900px}
+.dtools[hidden]{display:none}
+.p-head.gph{display:block}
+.gph-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.p-head.gph .note{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:4px}
+.ttable th[data-c=grp],.ttable td[data-c=grp]{width:50px;min-width:50px;max-width:50px;padding-right:0}
+.ttable th[data-c=grp] button{padding-right:0}
+.mrow.v .mtrack i{background:#e29a3b}
+.vsep{align-self:stretch;width:4px;border-left:1px solid #aab8b1;border-right:1px solid #aab8b1;margin:2px 6px}
+@media(max-width:560px){.vsep{display:none!important}}
+.dfive{display:inline-flex;flex-wrap:wrap;gap:8px;align-items:center}
+.dfive select{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;font-size:13px}
+
+.dot.st{background:repeating-linear-gradient(45deg,#34405a 0 2px,#fff 2px 4px);border:1px solid #34405a}
+.substrip{margin-top:8px;padding:8px 12px;border-radius:12px;background:#f3f6f5;display:grid;grid-template-columns:repeat(3,minmax(0,auto));justify-content:space-between;gap:4px 10px;align-items:center}
+.substrip .st-h{grid-column:1/-1;font-size:11.5px;font-weight:800}
+.substrip .st-h small{font-weight:600;color:var(--ink3);margin-left:6px}
+.substrip .ss{display:flex;align-items:baseline;gap:6px;min-width:0;white-space:nowrap}
+.substrip .ss .l{font-size:11px;color:var(--ink3)}
+.substrip .ss b{font-size:14px;letter-spacing:-.01em}
+.substrip .ss .d{font-size:10.5px;align-self:center}
+.legend .hint{color:var(--ink3);font-size:11px}
+.crow.hs{grid-template-columns:12px minmax(0,1fr) auto auto auto}
+.crow.gp{grid-template-columns:12px minmax(0,1fr) 58px 62px 72px;gap:6px}
+.crow.gp .py{font-size:11px;color:var(--ink3);font-weight:500;text-align:right}
+.crow.gp .cy{font-size:13px;font-weight:800;text-align:right}
+.crow.gp .dd{font-size:12px;font-weight:700;text-align:right;white-space:nowrap}
+.dup{color:#1f4f9f}.ddn{color:#c8372d}.dflat{color:var(--ink3)}
+.crow.chd{font-size:10.5px;color:var(--ink3);padding-top:0;padding-bottom:2px;pointer-events:none}
+.crow.chd span{text-align:right;font-weight:600}
+.crow.gtot{background:#f6f8f7;border-radius:10px;margin-bottom:2px}
+.crow.gtot .nm{font-weight:800}
+.mdiv{border-top:1.5px dashed #c9d4ce;margin:14px 0 8px}
+.msub{font-size:12px;font-weight:800;color:var(--ink2);margin:0 0 2px}
+.mrow.v{grid-template-columns:104px minmax(0,1fr) 56px}
+.mrow.v .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:480px){.crow.gp{grid-template-columns:10px minmax(0,1fr) 46px 52px 60px;gap:4px;padding:7px 4px}.crow.gp .nm{font-size:12px}.crow.gp .cy{font-size:12.5px}.crow.gp .dd{font-size:11px}.mrow.v{grid-template-columns:84px minmax(0,1fr) 52px}}
+
+.sx{font-size:10px;line-height:1.25;color:var(--ink3);font-weight:500;text-align:right;white-space:nowrap;min-width:56px}
+.ttable td.sx{font-size:11px;min-width:0}
+.ttable [data-c=sxm]{display:none}
+@media(max-width:480px){.substrip{grid-template-columns:1fr;gap:3px}.substrip .ss{justify-content:flex-start}.substrip .ss .l{min-width:48px}.ttable [data-c=sxm]{display:table-cell}.ttable [data-c=lump],.ttable [data-c=sb]{display:none}.ttable td.sxm{font-size:9.5px;line-height:1.25;color:var(--ink3)}.crow.hs{gap:5px}.sx{min-width:46px;font-size:9.5px}.substrip .ss b{font-size:13.5px}}
+
+.subline{font-size:12px;color:var(--ink2);margin:-6px 4px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:17px}
+.ttable tr.selrow td,.ttable tr.selrow td.fc{background:#eef4f1}
+.rtable.h{min-width:0;width:100%;font-size:9.5px;line-height:1.2}.rtable.h th{font-size:9px;font-weight:600;padding:2px 1px;text-align:right}.rtable.h td{padding:2px 1px;text-align:right;color:var(--ink2)}.rtable.h td.b{color:var(--ink);font-weight:800}.rtable.h td:first-child,.rtable.h th:first-child{text-align:left;padding-left:2px;white-space:nowrap;color:var(--ink)}.refbox.mini{margin-top:6px;padding-top:4px}
+@media(max-width:480px){.rtable.h.dec{font-size:7.6px}.rtable.h.dec th{font-size:8px}.rtable.h.dec td:first-child{padding-right:2px}.rtable.h{font-size:9px}.rtable.h th{font-size:8.5px;padding:2px 0}.rtable.h td{padding:2px 0}.refbox.mini .twrap{margin:0 -6px;padding:0 6px}}
+[data-yr]{cursor:pointer}
+@media(max-width:480px){.rtable.v{font-size:11px}.rtable.v td,.rtable.v th{padding:7px 2px}.rtable.v td.dc,.rtable.v th.dc{font-size:9.5px;padding-left:0}.rtable.v th:first-child,.rtable.v td:first-child{width:34px;padding-left:4px}.rtable small{display:block;margin:0}.refbox .twrap{margin:0 -6px;padding:0 6px}}
+</style>
+</head>
+<body>
+<div class="layout">
+<main>
+  <div class="top">
+    <div>
+      <h1>판매·손익 현황<span class="sample">v1.1</span></h1>
+    </div>
+    <div class="top-actions">
+      <button class="btn only-m" id="openSide" type="button">조건</button>
+      <button class="btn pri" id="openDetail" type="button">상세보기</button>
+    </div>
+  </div>
+  <div class="chips" id="chips" role="group" aria-label="채널 필터"></div>
+  <div class="subline" id="sub"></div>
+  <section class="kpis" id="kpis" aria-label="핵심 지표"></section>
+  <section class="panel gcard" id="gcard" aria-label="그룹별 매출"></section>
+  <section class="charts">
+    <div class="panel" id="trend"></div>
+    <div class="panel" id="comp"></div>
+  </section>
+  <section class="panel" id="tbl"></section>
+  <p class="foot" id="foot"></p>
+</main>
+
+<aside class="side" id="side" aria-label="조회 조건">
+  <h3>조회 조건 <button class="xclose" id="closeSide" type="button">닫기</button></h3>
+  <div class="fld"><span class="lb">기준 년월</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <select id="selY" aria-label="기준 년도"></select>
+      <select id="selM" aria-label="기준 월"></select>
+    </div>
+  </div>
+  <div class="fld"><span class="lb">집계 방식</span>
+    <div class="seg" id="segMode"><button type="button" data-set="mode:ytd">누계</button><button type="button" data-set="mode:month">당월</button></div>
+  </div>
+  <div class="fld"><span class="lb">매출 기준</span>
+    <div class="seg g2" id="segBasis">
+      <button type="button" data-set="basis:sd">판매(일보)</button>
+      <button type="button" data-set="basis:sr">매출(일보)</button>
+      <button type="button" data-set="basis:h">매출(환산)</button>
+      <button type="button" data-set="basis:k">매출(결산)</button>
+    </div>
+    <div class="hint" id="basisHint"></div>
+  </div>
+  <button class="btn main" id="openDetail2" type="button">상세보기 (연·월 조회)</button>
+  <div class="hint">금액 단위 백만원 · 재고는 기말(선택월 말) 잔액<br>일보DB 2019.01~ · 결산DB 2022.01~</div>
+</aside>
+</div>
+<div class="backdrop" id="backdrop"></div>
+<div class="tip" id="tip" role="status"></div>
+
+<div class="detail" id="detail" role="dialog" aria-modal="true" aria-label="상세 조회">
+  <div class="dpanel">
+    <div class="dhead"><h2>상세 조회</h2><button class="btn" id="closeDetail" type="button">닫기</button></div>
+    <div class="dsub">
+      <div class="seg" id="dView" role="group" aria-label="보기 선택"><button type="button" data-v="look">조회</button><button type="button" data-v="five">5년 월별</button><button type="button" data-v="all">전체 월별</button></div>
+      <select id="dBasis" aria-label="매출 기준"></select>
+      <span class="vsep" id="dSep" style="display:none"></span>
+      <div class="dfive" id="dtFive" style="display:none">
+        <div class="seg" id="fView" role="group" aria-label="5년 월별 보기"><button type="button" data-fv="cur">현재 기준</button><button type="button" data-fv="ch">채널별 매출</button></div>
+        <span id="dChSlotF"></span>
+        <select id="fMet" aria-label="지표"><option value="sales">매출</option><option value="rc">경상이익</option></select>
+      </div>
+      <select id="dCh" aria-label="채널"></select>
+    </div>
+    <div class="dtools" id="dtLook">
+      <select id="dY" aria-label="년도"></select>
+      <select id="dM1" aria-label="시작 월"></select>
+      <span>~</span>
+      <select id="dM2" aria-label="종료 월"></select>
+      <span id="dChSlotL"></span>
+      <div class="seg" id="dAxis" role="group" aria-label="구분 축">
+        <button type="button" data-ax="grp">그룹</button><button type="button" data-ax="md">MD</button><button type="button" data-ax="item">품목</button><button type="button" data-ax="vend">거래선</button>
+      </div>
+      <input id="dQ" type="search" placeholder="이름 검색" aria-label="이름 검색">
+    </div>
+    <div class="dbody" id="dBody"></div>
+  </div>
+</div>
+
+<script>
+const DATA_J = __DATA_J__;
+const DATA_I = __DATA_I__;
+(function(){
+"use strict";
+const DJ=DATA_J, DI=DATA_I;
+[DJ,DI].forEach(c=>{c.dims.ch=c.dims.ch.map(x=>x==='직영'?'B2C':x);});
+const GR=DJ.dims.grp, CHN=DJ.dims.ch, YEARS=DJ.years, LASTY=DJ.lastY, LASTM=DJ.lastM;
+const CH_ORDER=[0,2,1,3]; // B2C(구 직영), B2B, 온라인, 특수
+const DEF_CH=[0,2]; // 기본: B2C+B2B (= 직영)
+const GC={PL:'#2a78d6',PS:'#eb6834',PI:'#1baf7a',PM:'#eda100',B2B:'#b4559a','기타':'#8a94a6'};
+const VPAL=['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4','#6250d6','#0b7a75'];
+const GRAY='#8a94a6';
+/* 이익율 분모: 'selected' = 현재 선택한 매출기준, 'k' = 결산 매출 고정 (추후 확정 시 이 값만 변경) */
+const MARGIN_DENOM='k';
+const BASIS={
+  h:{cube:DJ,amt:'s_h',sub:'sb_h',qty:'q',pl:true,label:'매출(환산)',short:'환산',hint:'결산DB · 구독을 고객판매가로 환산한 매출 (2025년~, 이전은 매출과 동일)',subNote:'환산 구독 = 구독 열 + (환산−결산) 차이'},
+  k:{cube:DJ,amt:'s_k',sub:'sb_k',qty:'q',pl:true,label:'매출(결산)',short:'결산',hint:'결산DB · 구독은 수수료 수취분만 매출로 인식 (2025년~, 이전은 환산과 동일)',subNote:'결산 구독 = 결산DB 구독 열(수수료 수취분)'},
+  sr:{cube:DI,amt:'a2',sub:'b2',qty:'q2',pl:false,label:'매출(일보)',short:'일보매출',hint:'일보DB 판매구분 2(매출) · 구독은 고객판매가 · 이익·재고는 제공되지 않음',subNote:'일보 구독 = 매입구분 E'},
+  sd:{cube:DI,amt:'a1',sub:'b1',qty:'q1',pl:false,label:'판매(일보)',short:'일보판매',hint:'일보DB 판매구분 1(판매) · 구독은 고객판매가 · 이익·재고는 제공되지 않음',subNote:'일보 구독 = 매입구분 E'}
+};
+const nf=new Intl.NumberFormat('ko-KR');
+const $=(s,r)=>(r||document).querySelector(s);
+const M=v=>nf.format(Math.round(v/1000));
+const PCT=(v,d)=>(v*100).toFixed(d==null?1:d)+'%';
+const availM=y=>y===LASTY?LASTM:12;
+let TREND_X=0,COMP_N=8;const COMP_REF=600;
+const S={metric:'sales',year:LASTY,month:LASTM,mode:'ytd',basis:'h',chs:new Set(DEF_CH),grp:null,
+        tview:'year',opb:'k',span:'sync',mspan:3,comp:'vend',vend:null,tab:'md',more:false,sort:{key:'s',dir:-1}};
+const DS={y:LASTY,m1:1,m2:LASTM,ax:'grp',q:'',view:'look',path:[],f5:{v:'cur',m:'sales'}};
+const B=()=>BASIS[S.basis];
+const hasPL=()=>B().pl;
+
+/* ---------- engine ---------- */
+function chMask(){ if(!S.chs.size)return null; const a=[false,false,false,false]; S.chs.forEach(i=>a[i]=true); return a; }
+function vendIdx(){if(S.vend==null)return null;const i=B().cube.dims.vend.indexOf(S.vend);return i<0?-2:i;}
+const filt=(ig,iv)=>({chm:chMask(),grp:ig?null:S.grp,vend:iv?null:vendIdx()});
+function eachRow(c,y,m1,m2,f,cb){
+  const R=c.rows,N=R.y.length,yy=R.y,mm=R.m,cc=R.ch,gg=R.grp,chm=f.chm,g=f.grp,fm=f.md==null?null:f.md,fi=f.item==null?null:f.item,fv=f.vend==null?null:f.vend,MD=R.md,IT=R.item,VD=R.vend;
+  for(let i=0;i<N;i++){
+    if(yy[i]!==y)continue; const m=mm[i]; if(m<m1||m>m2)continue;
+    if(chm&&!chm[cc[i]])continue; if(g!=null&&gg[i]!==g)continue;
+    if(fm!=null&&MD[i]!==fm)continue; if(fi!=null&&IT[i]!==fi)continue; if(fv!=null&&VD[i]!==fv)continue; cb(i);
+  }
+}
+function blank(){return {s:0,sb:0,gp:0,rc:0,op:0,q:0,sk:0,sh:0,fk:0};}
+function addRow(o,R,A,Q,i,pl,SB){o.s+=A[i];o.q+=Q[i];o.sb+=SB[i]; if(pl){o.gp+=R.gp[i];o.rc+=R.rc[i];o.op+=R.op[i];o.sk+=R.s_k[i];o.sh+=R.s_h[i];o.fk+=R.sb_k[i];}}
+function agg(y,m1,m2,f){const b=B(),R=b.cube.rows,A=R[b.amt],Q=R[b.qty],o=blank();eachRow(b.cube,y,m1,m2,f,i=>addRow(o,R,A,Q,i,b.pl,R[b.sub]));return o;}
+function by(dim,y,m1,m2,f){const b=B(),R=b.cube.rows,A=R[b.amt],Q=R[b.qty],D=R[dim],mp=new Map();
+  eachRow(b.cube,y,m1,m2,f,i=>{let o=mp.get(D[i]);if(!o){o=blank();mp.set(D[i],o);}addRow(o,R,A,Q,i,b.pl,R[b.sub]);});return mp;}
+function stock(y,m,f){let inv=0,q=0;if(!hasPL())return {inv:null,q:null};const R=DJ.rows;eachRow(DJ,y,m,m,f,i=>{inv+=R.inv[i];q+=R.invq[i];});return {inv:inv,q:q};}
+function stockBy(dim,y,m,f){const mp=new Map();if(!hasPL())return mp;const R=DJ.rows,D=R[dim];eachRow(DJ,y,m,m,f,i=>{mp.set(D[i],(mp.get(D[i])||0)+R.inv[i]);});return mp;}
+const mg=o=>{if(!o)return null;const d=MARGIN_DENOM==='k'?o.sk:o.s;return d?o.gp/d:null;};
+/* 일시불 이익율 = (매출이익 − 구독 수수료) ÷ (매출(결산) − 구독 수수료) · 구독 수수료 = 결산DB 구독 열 */
+const mgL=o=>{if(!o)return null;const d=o.sk-o.fk;return d>0?(o.gp-o.fk)/d:null;};
+const mgAt=(o,m)=>{const d=S.opb==='L'?o.sk[m]-o.fk[m]:(MARGIN_DENOM==='k'?o.sk[m]:o.s[m]);return d>0?(o.gp[m]-(S.opb==='L'?o.fk[m]:0))/d:null;};
+const per=()=>S.mode==='ytd'?[1,S.month]:[S.month,S.month];
+function prevMonth(){return S.month>1?[S.year,S.month-1]:[S.year-1,12];}
+const hasYear=y=>YEARS.indexOf(y)>=0;
+/* 월별 일괄 집계 (한 번 순회) */
+function monthlyPass(years,f,bb){
+  const b=bb||B(),c=b.cube,R=c.rows,N=R.y.length,A=R[b.amt],Q=R[b.qty],out={};
+  years.forEach(y=>{out[y]={q:new Array(13).fill(0),s:new Array(13).fill(0),gp:new Array(13).fill(0),rc:new Array(13).fill(0),sk:new Array(13).fill(0),fk:new Array(13).fill(0),inv:new Array(13).fill(0)};});
+  const chm=f.chm,g=f.grp,fm=f.md==null?null:f.md,fi=f.item==null?null:f.item,fv=f.vend==null?null:f.vend;
+  for(let i=0;i<N;i++){const o=out[R.y[i]];if(!o)continue;if(chm&&!chm[R.ch[i]])continue;if(g!=null&&R.grp[i]!==g)continue;
+    if(fm!=null&&R.md[i]!==fm)continue;if(fi!=null&&R.item[i]!==fi)continue;if(fv!=null&&R.vend[i]!==fv)continue;
+    const m=R.m[i];o.s[m]+=A[i];o.q[m]+=Q[i];if(b.pl){o.gp[m]+=R.gp[i];o.rc[m]+=R.rc[i];o.sk[m]+=R.s_k[i];o.fk[m]+=R.sb_k[i];o.inv[m]+=R.inv[i];}}
+  return out;
+}
+function monthlyGroups(y,f){
+  const b=B(),c=b.cube,R=c.rows,N=R.y.length,A=R[b.amt],out=GR.map(()=>new Array(13).fill(0));
+  for(let i=0;i<N;i++){if(R.y[i]!==y)continue;if(f.chm&&!f.chm[R.ch[i]])continue;if(f.vend!=null&&R.vend[i]!==f.vend)continue;out[R.grp[i]][R.m[i]]+=A[i];}
+  return out;
+}
+
+/* ---------- dominance maps (품목→MD/그룹, MD→그룹) ---------- */
+function domMaps(c,amt){
+  const R=c.rows,N=R.y.length,A=R[amt],ig={},im={},mgp={};
+  for(let i=0;i<N;i++){const a=Math.abs(A[i]);const it=R.item[i],g=R.grp[i],md=R.md[i];
+    (ig[it]=ig[it]||{})[g]=(ig[it][g]||0)+a;(im[it]=im[it]||{})[md]=(im[it][md]||0)+a;(mgp[md]=mgp[md]||{})[g]=(mgp[md][g]||0)+a;}
+  const top=o=>{let k=null,v=-1,t=0;Object.keys(o).forEach(x=>{t+=o[x];if(o[x]>v){v=o[x];k=+x;}});return {k:k,share:t?v/t:1};};
+  const r={ig:{},im:{},mg:{}};
+  Object.keys(ig).forEach(k=>r.ig[k]=top(ig[k]).k);Object.keys(im).forEach(k=>r.im[k]=top(im[k]).k);Object.keys(mgp).forEach(k=>r.mg[k]=top(mgp[k]));
+  return r;
+}
+const DOM={J:domMaps(DJ,'s_h'),I:domMaps(DI,'a2')};
+const dom=()=>B().cube===DJ?DOM.J:DOM.I;
+
+/* ---------- delta chips ---------- */
+function dsp(v,txt){
+  if(!isFinite(v))return '<span class="d na">-</span>';
+  if(Math.abs(v)<0.05)return '<span class="d flat">■ '+txt+'</span>';
+  return v>0?'<span class="d up">▲ '+txt+'</span>':'<span class="d dn">▼ '+txt+'</span>';
+}
+function gr(a,b){ if(a==null||!b||!isFinite(a)||!isFinite(b))return '<span class="d na">-</span>'; const v=(a/b-1)*100; return dsp(v,Math.abs(v).toFixed(1)+'%'); }
+function pp(a,b){ if(a==null||b==null||!isFinite(a)||!isFinite(b))return '<span class="d na">-</span>'; const v=(a-b)*100; return dsp(v,Math.abs(v).toFixed(1)+'%p'); }
+const NA='<span class="d na">-</span>';
+/* 금액차(적자·흑자 혼재 지표용): 개선 ▲ / 악화 ▼ */
+function dm(a,b){ if(a==null||b==null||!isFinite(a)||!isFinite(b))return NA; const v=a-b; return dsp(v/1000,M(Math.abs(v))); }
+
+/* ---------- labels ---------- */
+function perLabel(){const m=S.month,mm=m<10?'0'+m:m;
+  return S.mode==='ytd'?(S.year+'.01'+(m===1?'':'~'+mm)+' 누계'):(S.year+'.'+mm+' 당월');}
+function chName(){if(!S.chs.size)return '전체';const a=CH_ORDER.filter(i=>S.chs.has(i));if(a.length===2&&S.chs.has(0)&&S.chs.has(2))return '직영(=B2C+B2B)';return a.map(i=>CHN[i]).join('+');}
+const metricName=()=>({sales:'매출',gp:'손익(경상이익)',opm:'이익율(매출이익)',inv:'기말 재고',grp:'그룹별 매출'}[S.metric]);
+const needsPL=()=>S.metric==='gp'||S.metric==='opm'||S.metric==='inv';
+
+/* ---------- header / chips ---------- */
+function renderTop(){
+  const subTxt=[perLabel(),B().label].concat(S.chs.size?[chName()]:[],S.grp!=null?['그룹 '+GR[S.grp]]:[],S.vend!=null?['거래선 '+S.vend]:[],['백만원']).join(' · ');
+  $('#sub').textContent=subTxt;$('#sub').title=subTxt;
+  let h='<button type="button" class="chip" data-set="ch:all" aria-pressed="'+(S.chs.size===0)+'">전체</button><span class="gap"></span>';
+  h+=CH_ORDER.map(i=>'<button type="button" class="chip" data-set="ch:'+i+'" aria-pressed="'+S.chs.has(i)+'">'+CHN[i]+'</button>').join('');
+  if(S.grp!=null||S.vend!=null)h+='<span class="gap"></span>';
+  if(S.grp!=null)h+='<button type="button" class="chip tag" data-set="grp:all" aria-label="그룹 필터 해제">그룹 '+GR[S.grp]+' ✕</button>';
+  if(S.vend!=null)h+='<button type="button" class="chip tag" data-set="vend:all" aria-label="거래선 필터 해제">거래선 '+S.vend+' ✕</button>';
+  $('#chips').innerHTML=h;
+}
+
+/* ---------- KPI ---------- */
+function spark(vals){
+  vals=vals.filter(v=>v!=null&&isFinite(v)); if(vals.length<2)return '';
+  const W=200,H=56,mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals),rg=(mx-mn)||1;
+  const pts=vals.map((v,i)=>[i*(W/(vals.length-1)),H-6-(v-mn)/rg*(H-16)]);
+  const d='M'+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' L');
+  return '<svg class="spark" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" aria-hidden="true"><path d="'+d+' L'+W+','+H+' L0,'+H+' Z" fill="#fff" fill-opacity=".35"/><path d="'+d+'" fill="none" stroke="#fff" stroke-width="2"/></svg>';
+}
+function renderKpis(){
+  const f=filt(),Y=S.year,Mo=S.month,ab=per(),pl=hasPL(),ytd=S.mode==='ytd',l1=ytd?'전년비(동기)':'전년동월비';
+  const cur=agg(Y,ab[0],ab[1],f),py=hasYear(Y-1)?agg(Y-1,ab[0],ab[1],f):null;
+  const cm=agg(Y,Mo,Mo,f),pmv=prevMonth(),pm=hasYear(pmv[0])?agg(pmv[0],pmv[1],pmv[1],f):null;
+  const mono=fn=>{const a=[];for(let m=1;m<=Mo;m++)a.push(fn(m));return a;};
+  const mpass=monthlyPass([Y],f)[Y];
+  const cards=[];
+  const diff=pl&&Y>=2025?cur.sh-cur.sk:0;
+  cards.push({m:'sales',cls:'k1',name:'매출',per:ytd?(Mo===1?'1월 누계':'1~'+Mo+'월 누계'):Mo+'월 당월',val:M(cur.s),unit:'백만',
+    r:[[l1,gr(cur.s,py&&py.s)],[ytd?'당월 '+M(cm.s)+' · 전월비':'전월비',gr(cm.s,pm&&pm.s)],
+       [pl&&Y>=2025?'구독 환산−결산 '+(diff>=0?'+':'')+M(diff):'전년 '+(py?M(py.s):'-'),'']],
+    sp:spark(mono(m=>mpass.s[m]))});
+  if(pl){
+    const l1d=ytd?'전년차(동기)':'전년동월차';
+    cards.push({m:'gp',cls:'k2',name:'손익',per:'경상이익 기준',val:M(cur.rc),unit:'백만',
+      r:[[l1d,dm(cur.rc,py&&py.rc)],[ytd?'당월 '+M(cm.rc)+' · 전월차':'전월차',dm(cm.rc,pm&&pm.rc)],['매출이익 '+M(cur.gp),'']],
+      sp:spark(mono(m=>mpass.rc[m]))});
+    const mc=mg(cur),mp=mg(py),mcm=mg(cm),mpm=mg(pm),ml=mgL(cur),mlp=mgL(py);
+    cards.push({m:'opm',cls:'k3',name:'이익율',per:'매출이익 ÷ 결산매출',val:mc==null?'-':PCT(mc),unit:'',
+      r:[[l1.replace('비','차'),pp(mc,mp)],[ytd?'당월 '+(mcm==null?'-':PCT(mcm))+' · 전월차':'전월차',pp(mcm,mpm)],['일시불 '+(ml==null?'-':PCT(ml)),pp(ml,mlp)]],
+      sp:spark(mono(m=>{const d=MARGIN_DENOM==='k'?mpass.sk[m]:mpass.s[m];return d?mpass.gp[m]/d:null;}))});
+    const st=stock(Y,Mo,f),stpy=hasYear(Y-1)?stock(Y-1,Mo,f):null,stpm=hasYear(pmv[0])?stock(pmv[0],pmv[1],f):null;
+    cards.push({m:'inv',cls:'k4',name:'재고',per:Mo+'월 말 잔액',val:M(st.inv),unit:'백만',
+      r:[['전년동월비',gr(st.inv,stpy&&stpy.inv)],['전월비',gr(st.inv,stpm&&stpm.inv)],['수량 '+nf.format(st.q)+' 대','']],
+      sp:spark(mono(m=>mpass.inv[m]))});
+  } else {
+    [['gp','k2','손익','경상이익 기준'],['opm','k3','이익율','매출이익 ÷ 결산매출'],['inv','k4','재고',Mo+'월 말 잔액']].forEach(x=>cards.push({m:x[0],cls:x[1],name:x[2],per:x[3],val:'-',unit:'',
+      r:[['결산DB 기준에서 제공',''],['매출(환산/결산) 선택',''],['','']],sp:''}));
+  }
+  $('#kpis').innerHTML=cards.map(c=>'<button type="button" class="kpi '+c.cls+(S.metric===c.m?' on':'')+'" data-set="metric:'+c.m+'" aria-pressed="'+(S.metric===c.m)+'">'+
+    '<div class="k-top"><span class="k-name">'+c.name+'</span><span class="k-tag">차트 기준</span></div>'+
+    '<div class="k-per">'+c.per+'</div>'+
+    '<div class="k-val">'+c.val+(c.unit?'<small>'+c.unit+'</small>':'')+'</div>'+
+    '<div class="k-rows">'+c.r.map(r=>'<div><span class="l">'+r[0]+'</span>'+(r[1]||'')+'</div>').join('')+'</div>'+c.sp+'</button>').join('');
+}
+
+/* ---------- group strip ---------- */
+function renderGroups(){
+  const f=filt(true),ab=per(),Y=S.year;
+  const cur=by('grp',Y,ab[0],ab[1],f),py=hasYear(Y-1)?by('grp',Y-1,ab[0],ab[1],f):null;
+  let tot=0;cur.forEach(o=>tot+=o.s);
+  const idx=GR.map((_,i)=>i);
+  $('#gcard').className='panel gcard'+(S.metric==='grp'?' on':'');
+  $('#gcard').innerHTML='<button type="button" class="gtitle" data-set="metric:grp" aria-pressed="'+(S.metric==='grp')+'"><span><h2 style="font-size:15px;font-weight:800">그룹별 매출</h2><div class="note" style="font-size:11.5px;color:var(--ink3);margin-top:2px">'+perLabel()+' · '+B().short+' · '+chName()+' · 눌러서 그룹 선택/해제</div></span><span class="k-tag">차트 기준</span></button>'+
+   '<div class="gbar" aria-hidden="true">'+idx.map(i=>{const o=cur.get(i);const w=o&&tot>0?Math.max(o.s/tot*100,0):0;return '<i style="width:'+w+'%;background:'+GC[GR[i]]+'"></i>';}).join('')+'</div>'+
+   '<div class="gitems">'+idx.map(i=>{const o=cur.get(i)||{s:0};const p=py&&py.get(i)?py.get(i).s:0;
+     return '<button type="button" class="gi'+(S.grp===i?' sel':'')+(S.grp!=null&&S.grp!==i?' dim':'')+'" data-set="grp:'+i+'" aria-pressed="'+(S.grp===i)+'"><span class="n"><i class="dot" style="background:'+GC[GR[i]]+'"></i>'+GR[i]+'</span><span class="v">'+M(o.s)+'</span><span class="s">'+(tot?PCT(o.s/tot):'-')+' '+gr(o.s,p)+'</span></button>';}).join('')+'</div>';
+}
+
+/* ---------- trend ---------- */
+function nice(mn,mx,n){
+  if(mx===mn){mx=mn+1;}
+  const rg=(mx-mn)/(n||4),p=Math.pow(10,Math.floor(Math.log10(rg))),f=rg/p,s=(f<=1?1:f<=2?2:f<=5?5:10)*p;
+  const a=Math.floor(mn/s)*s,b=Math.ceil(mx/s)*s,t=[];for(let v=a;v<=b+1e-9;v+=s)t.push(v);return t;
+}
+const fmtMetric=v=>S.metric==='opm'?PCT(v):M(v);
+const SERC=['#34405a','#2a78d6','#6f7f90','#9aa5b0','#c0c8d0'];
+function renderTrend(){
+  const box=$('#trend');
+  const yr=S.tview==='year',sync=S.span==='sync';
+  const spanTxt=yr?(S.metric==='inv'?(sync?'각 연도 '+S.month+'월 말 잔액':'연말 잔액 (진행연도는 최근월 말)'):(sync?(S.mode==='ytd'?'각 연도 '+(S.month===1?'1월':'1~'+S.month+'월')+' 누계':'각 연도 '+S.month+'월'):'연간 (진행연도는 가용월까지)')):
+    (S.metric==='grp'?LASTY+'년 그룹별 월별 추이':'최근 '+S.mspan+'개년 월별 추이 ('+LASTY+'년까지)'+(S.metric==='opm'&&S.opb==='L'?' · 일시불 이익율(구독 수수료 제외)':''));
+  const title=S.metric==='inv'?(yr?'기말 재고 추이':'월별 기말 재고'):metricName()+(yr?' 연도별 추이':' 월별 추이');
+  let ctr='<div class="seg" role="group" aria-label="보기 단위"><button type="button" data-set="tview:year" aria-pressed="'+yr+'">연도별</button><button type="button" data-set="tview:month" aria-pressed="'+!yr+'">월별</button></div>';
+  if(yr)ctr+='<div class="seg" role="group" aria-label="비교 기간"><button type="button" data-set="span:sync" aria-pressed="'+sync+'">동기</button><button type="button" data-set="span:full" aria-pressed="'+!sync+'">연간</button></div>';
+  else if(S.metric==='opm')ctr+='<div class="seg" role="group" aria-label="이익율 기준"><button type="button" data-set="opb:k" aria-pressed="'+(S.opb==='k')+'">이익율(결산)</button><button type="button" data-set="opb:L" aria-pressed="'+(S.opb==='L')+'">일시불</button></div><div class="seg" role="group" aria-label="비교 연수"><button type="button" data-set="mspan:3" aria-pressed="'+(S.mspan===3)+'">3년</button><button type="button" data-set="mspan:5" aria-pressed="'+(S.mspan===5)+'">5년</button></div>';
+  else if(S.metric!=='grp')ctr+='<div class="seg" role="group" aria-label="비교 연수"><button type="button" data-set="mspan:3" aria-pressed="'+(S.mspan===3)+'">3년</button><button type="button" data-set="mspan:5" aria-pressed="'+(S.mspan===5)+'">5년</button></div>';
+  box.innerHTML='<div class="p-head"><div><h2>'+title+'</h2><div class="note">'+spanTxt+' · '+B().short+' · 채널 '+chName()+(S.grp!=null&&S.metric!=='grp'?' · '+GR[S.grp]:'')+(S.vend!=null?' · 거래선 '+S.vend:'')+'</div></div><div class="ctrls">'+ctr+'</div></div>'+
+    '<div class="chart-box" id="tbox"></div><div class="legend" id="tleg"></div><div id="substrip"></div><div id="ref"></div>';
+  if(needsPL()&&!hasPL()){$('#tbox').innerHTML=noPL();return;}
+  if(yr)drawYear();else drawMonthly();
+  renderRef();
+}
+
+/* ---------- 3개년 월별 참고표 (억원) ---------- */
+const nf1=new Intl.NumberFormat('ko-KR',{minimumFractionDigits:1,maximumFractionDigits:1});
+const E=v=>nf1.format(v/100000); /* 천원 → 억원 */
+const sp=(cls,t)=>'<span class="'+cls+'">'+t+'</span>';
+function dtxt(kind,a,b){
+  if(a==null||b==null||!isFinite(a)||!isFinite(b))return '-';
+  if(kind==='opm'){const v=(a-b)*100;return Math.abs(v)<0.05?'■ 0.0%p':sp(v>0?'u':'n',(v>0?'▲ ':'▼ ')+Math.abs(v).toFixed(1)+'%p');}
+  if(kind==='gp'){const v=a-b;return Math.abs(v)<5000?'■ 0.0':sp(v>0?'u':'n',(v>0?'▲ ':'▼ ')+E(Math.abs(v)));}
+  if(!b)return '-';const v=(a/b-1)*100;return Math.abs(v)<0.05?'■ 0.0%':sp(v>0?'u':'n',(v>0?'▲ ':'▼ ')+Math.abs(v).toFixed(1)+'%');
+}
+const nf0=new Intl.NumberFormat('ko-KR',{maximumFractionDigits:0});
+function renderRef(){
+  const host=$('#ref');if(!host)return;
+  if(S.tview!=='month'){host.innerHTML='';return;}
+  if(needsPL()&&!hasPL()){host.innerHTML='';return;}
+  const compact=window.matchMedia('(max-width:480px)').matches,kind=S.metric==='grp'?'sales':S.metric,f=filt(S.metric==='grp');
+  const den=o=>MARGIN_DENOM==='k'?o.sk:o.s;
+  const fmt=v=>v==null||!isFinite(v)?'–':(kind==='opm'?(v*100).toFixed(1):(kind==='gp'?nf1.format(v/100000):nf0.format(v/100000)));
+  let rows=[];
+  if(S.metric==='grp'){
+    const g=monthlyGroups(LASTY,f),am=availM(LASTY);
+    rows=GR.map((n,i)=>({label:n,color:GC[n],bold:false,v:m=>m<=am?g[i][m]:null}));
+  } else {
+    const ys=[];for(let k=0;k<S.mspan;k++){const y=LASTY-k;if(hasYear(y))ys.push(y);}
+    const mp=monthlyPass(ys,f);
+    rows=ys.map((y,k)=>({label:compact?'’'+String(y).slice(2):String(y),color:SERC[Math.min(k,SERC.length-1)],bold:k===0,v:m=>{
+      if(m>availM(y))return null;const o=mp[y];
+      if(kind==='sales')return o.s[m];if(kind==='gp')return o.rc[m];if(kind==='inv')return o.inv[m];
+      return mgAt(o,m);}}));
+  }
+  let h='<div class="refbox mini"><div class="twrap"><table class="rtable h'+(kind==='gp'?' dec':'')+'"><thead><tr><th>'+(kind==='opm'?'%':'억')+'</th>';
+  for(let m=1;m<=12;m++)h+='<th>'+m+(compact?'':'월')+'</th>';
+  h+='</tr></thead><tbody>'+rows.map(r=>'<tr><td><i class="dot" style="background:'+r.color+';width:6px;height:6px;margin-right:3px"></i>'+r.label+'</td>'+Array.from({length:12},(_,i)=>{const v=r.v(i+1);return '<td class="'+(v==null?'na':(r.bold?'b':''))+'">'+fmt(v)+'</td>';}).join('')+'</tr>').join('')+'</tbody></table></div></div>';
+  host.innerHTML=h;
+}
+function noPL(){return '<div class="nodata">'+metricName()+'은(는) 결산DB 기준에서만 제공됩니다.<br>일보DB에는 이익·재고 데이터가 없습니다.<br><button type="button" class="btn" data-set="basis:h">매출(환산)으로 보기</button></div>';}
+function yearData(){
+  const f=filt(S.metric==='grp'),out=[];
+  YEARS.forEach(y=>{
+    const ab=per(),sync=S.span==='sync';
+    if(sync&&ab[1]>availM(y)){out.push({y:y,na:true});return;}
+    const r=sync?ab:[1,availM(y)],o={y:y};
+    if(S.metric==='sales'||S.metric==='gp'||S.metric==='opm'){const a=agg(y,r[0],r[1],f);o.s=a.s;o.sb=a.sb;o.gp=a.gp;o.rc=a.rc;o.v=S.metric==='sales'?a.s:(S.metric==='gp'?a.rc:mg(a));o.vL=mgL(a);}
+    else if(S.metric==='inv'){o.v=stock(y,sync?S.month:availM(y),f).inv;}
+    else{const mp=by('grp',y,r[0],r[1],f);o.parts=GR.map((_,i)=>(mp.get(i)||{s:0}).s);o.v=o.parts.reduce((a,b)=>a+b,0);}
+    out.push(o);
+  });
+  return out;
+}
+function rbarDn(x,y,w,h,r){r=Math.min(r,w/2,Math.max(h,0));return 'M'+x+','+y+' L'+x+','+(y+h-r)+' Q'+x+','+(y+h)+' '+(x+r)+','+(y+h)+' L'+(x+w-r)+','+(y+h)+' Q'+(x+w)+','+(y+h)+' '+(x+w)+','+(y+h-r)+' L'+(x+w)+','+y+' Z';}
+function rbar(x,y,w,h,r){r=Math.min(r,w/2,Math.max(h,0));return 'M'+x+','+(y+h)+' L'+x+','+(y+r)+' Q'+x+','+y+' '+(x+r)+','+y+' L'+(x+w-r)+','+y+' Q'+(x+w)+','+y+' '+(x+w)+','+(y+r)+' L'+(x+w)+','+(y+h)+' Z';}
+function drawYear(){
+  const el=$('#tbox');if(!el)return;const data=yearData();
+  const bars=S.metric!=='opm'&&S.metric!=='grp';
+  const hasNeg=bars&&data.some(d=>!d.na&&d.v!=null&&d.v<0),hasPos=!bars||data.some(d=>!d.na&&d.v!=null&&d.v>0);
+  const W=Math.max(el.clientWidth,260),H=(W<480?250:320)+(hasNeg?30:0)+TREND_X,mL=6,mR=6,mT=hasPos?44:16,mB=34+(hasNeg?34:0),iw=W-mL-mR,ih=H-mT-mB;
+  const n=data.length,band=iw/n,bw=Math.min(64,band*0.6);
+  const live=data.filter(d=>!d.na&&d.v!=null);
+  let svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+metricName()+' 연도별 추이">'+'';
+  if(S.metric==='opm'){
+    const vs=live.map(d=>d.v).concat(live.filter(d=>d.vL!=null).map(d=>d.vL)),lo=Math.min.apply(null,vs),hi=Math.max.apply(null,vs),pad=(hi-lo||0.01)*0.6,mn=lo-pad,mx=hi+pad;
+    const sy=v=>mT+(mx-v)/(mx-mn||1)*ih;const pts=[],lpts=[];
+    data.forEach((d,i)=>{if(!d.na&&d.vL!=null)lpts.push([mL+band*i+band/2,sy(d.vL),d]);});
+    data.forEach((d,i)=>{if(!d.na&&d.v!=null)pts.push([mL+band*i+band/2,sy(d.v),d,i]);});
+    svg+='<line x1="'+mL+'" x2="'+(W-mR)+'" y1="'+(mT+ih)+'" y2="'+(mT+ih)+'" stroke="#c9d3ce"/>';
+    if(lpts.length>1)svg+='<path d="M'+lpts.map(p=>p[0]+','+p[1]).join(' L')+'" fill="none" stroke="#8a94a6" stroke-width="1.6" stroke-dasharray="5 4" stroke-linejoin="round"/>';
+    lpts.forEach(p=>{const d=p[2];svg+='<g data-yr="'+d.y+'" data-tip="'+d.y+'년 일시불 이익율 '+PCT(d.vL)+'<br>(매출이익−구독수수료 '+M(d.gp-d.fk)+') ÷ (결산매출−구독수수료 '+M(d.sk-d.fk)+')"><rect x="'+(p[0]-3.5)+'" y="'+(p[1]-3.5)+'" width="7" height="7" transform="rotate(45 '+p[0]+' '+p[1]+')" fill="#fff" stroke="#8a94a6" stroke-width="1.6"/><circle cx="'+p[0]+'" cy="'+p[1]+'" r="14" fill="transparent"/></g>';
+      if(d.v!=null&&Math.abs(d.v-d.vL)*100>=0.5)svg+='<text x="'+p[0]+'" y="'+(p[1]+(d.vL<d.v?15:-8))+'" text-anchor="middle" font-size="10.5" font-weight="700" fill="#6b7580">'+PCT(d.vL)+'</text>';});
+    if(pts.length>1)svg+='<path d="M'+pts.map(p=>p[0]+','+p[1]).join(' L')+'" fill="none" stroke="#34405a" stroke-width="2.5" stroke-linejoin="round"/>';
+    pts.forEach(p=>{const d=p[2],last=d.y===S.year,prev=data[p[3]-1];
+      const ppv=prev&&!prev.na&&prev.v!=null?(d.v-prev.v)*100:null;
+      svg+='<g data-yr="'+d.y+'" data-tip="'+d.y+'년 이익율 '+PCT(d.v)+(ppv==null?'':'<br>전년 대비 '+(ppv>=0?'+':'')+ppv.toFixed(1)+'%p')+'<br>매출이익 '+M(d.gp)+' / 매출 '+M(d.s)+(d.vL==null?'':'<br>일시불 이익율 '+PCT(d.vL))+'"><circle cx="'+p[0]+'" cy="'+p[1]+'" r="'+(last?7:5)+'" fill="'+(last?'#34405a':'#fff')+'" stroke="#34405a" stroke-width="2.5"/><circle cx="'+p[0]+'" cy="'+p[1]+'" r="18" fill="transparent"/></g>';
+      svg+='<text x="'+p[0]+'" y="'+(p[1]-14)+'" text-anchor="middle" font-size="12.5" font-weight="800" fill="#1d2733">'+PCT(d.v)+'</text>';
+      if(ppv!=null)svg+='<text x="'+p[0]+'" y="'+(p[1]-30)+'" text-anchor="middle" font-size="11" font-weight="800" fill="'+(ppv>=0?'#1f4f9f':'#b4501f')+'">'+(Math.abs(ppv)<0.05?'■ ':(ppv>0?'▲ ':'▼ '))+Math.abs(ppv).toFixed(1)+'%p</text>';
+    });
+  } else {
+    const vs=live.map(d=>d.v),hi0=Math.max(0,Math.max.apply(null,vs)),lo0=Math.min(0,Math.min.apply(null,vs)),span=(hi0-lo0)||1,sy=v=>mT+(hi0-v)/span*ih,y0=sy(0),isRc=S.metric==='gp';
+    [hi0,lo0].forEach(t=>{const yy=sy(t);svg+='<line x1="'+mL+'" x2="'+(W-mR)+'" y1="'+yy+'" y2="'+yy+'" stroke="#edf1ef"/>';});
+    svg+='<line x1="'+mL+'" x2="'+(W-mR)+'" y1="'+y0+'" y2="'+y0+'" stroke="#9aa8a1"/>';
+    data.forEach((d,i)=>{
+      const cx=mL+band*i+band/2,x=cx-bw/2;
+      if(d.na){svg+='<text x="'+cx+'" y="'+(y0-8)+'" text-anchor="middle" font-size="11" fill="#78828d">데이터 없음</text>';return;}
+      const isSel=d.y===S.year,prev=data[i-1],ng=d.v<0;
+      if(S.metric==='grp'){let acc=0;d.parts.forEach((p,k)=>{if(p<=0)return;const h=p/span*ih,yy=sy(acc+p);
+        svg+='<g data-yr="'+d.y+'" data-tip="'+d.y+'년 '+GR[k]+' '+M(p)+' ('+PCT(p/d.v)+')"><rect x="'+x+'" y="'+yy+'" width="'+bw+'" height="'+Math.max(h-1,0)+'" rx="3" fill="'+GC[GR[k]]+'" stroke="#fff" stroke-width="2"/></g>';acc+=p;});}
+      else{const hh=Math.max(Math.abs(d.v)/span*ih,1),pth=ng?rbarDn(x,y0,bw,hh,5):rbar(x,y0-hh,bw,hh,5);
+        const tp=isRc?(d.y+'년 경상이익 '+M(d.v)+'<br>매출이익 '+M(d.gp)+(d.s?' (이익율 '+PCT(d.gp/d.s)+')':'')):(d.y+'년 '+metricName()+' '+M(d.v)+(S.metric==='sales'&&d.sb!=null?'<br>일시불 '+M(d.v-d.sb)+' · 구독 '+M(d.sb)+' ('+PCT(d.v?d.sb/d.v:0)+')':''));
+        const ov=(S.metric==='sales'&&d.sb>0&&d.v>0)?'<path d="'+rbar(x,y0-hh,bw,Math.min(Math.max(d.sb/span*ih,3.5),hh),5)+'" fill="'+(isSel?'#d4a95a':'#e9d5a6')+'"/><rect x="'+x+'" y="'+(y0-hh+Math.min(Math.max(d.sb/span*ih,3.5),hh))+'" width="'+bw+'" height="1.6" fill="#fff"/>':'';
+        svg+='<g data-yr="'+d.y+'" data-tip="'+tp+'"><path d="'+pth+'" fill="'+(isSel?'#34405a':'#b3cdc1')+'"/>'+ov+'<rect x="'+(cx-band/2)+'" y="'+mT+'" width="'+band+'" height="'+ih+'" fill="transparent"/></g>';}
+      const edge=sy(d.v),vy=ng?edge+15:edge-6,dy=ng?edge+31:edge-22;
+      svg+='<text x="'+cx+'" y="'+vy+'" text-anchor="middle" font-size="12.5" font-weight="800" fill="#1d2733">'+M(d.v)+'</text>';
+      if(prev&&!prev.na&&prev.v!=null){
+        let v,txt;
+        if(isRc){v=d.v-prev.v;txt=M(Math.abs(v));}
+        else if(prev.v){v=(d.v/prev.v-1)*100;txt=Math.abs(v).toFixed(1)+'%';}
+        if(v!=null)svg+='<text x="'+cx+'" y="'+dy+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="'+(v>=0?'#1f4f9f':'#b4501f')+'">'+(Math.abs(v)<0.05?'■ ':(v>0?'▲ ':'▼ '))+txt+'</text>';}
+    });
+  }
+  data.forEach((d,i)=>{const cx=mL+band*i+band/2,part=(!d.na&&S.span==='full'&&d.y===LASTY&&LASTM<12)?' (~'+LASTM+'월)':'';
+    svg+='<text data-yr="'+d.y+'" x="'+cx+'" y="'+(H-10)+'" text-anchor="middle" font-size="12.5" font-weight="'+(d.y===S.year?800:600)+'" fill="'+(d.y===S.year?'#1d2733':'#4b5663')+'">'+d.y+part+'</text>';});
+  svg+='</svg>';el.innerHTML=svg;
+  $('#tleg').innerHTML=S.metric==='grp'?GR.map(g=>'<span><i class="dot" style="background:'+GC[g]+'"></i>'+g+'</span>').join(''):
+    (S.metric==='opm'?'<span><i class="ln"></i>굵은선: 이익율(결산) · %p는 전년 대비 차이</span><span><i class="ln dsh"></i>점선: 일시불(참고) = 구독 수수료 제외</span>':'<span><i class="dot" style="background:#34405a"></i>기준 연도</span><span><i class="dot" style="background:#b3cdc1"></i>비교 연도</span>'+(S.metric==='sales'?'<span><i class="dot" style="background:#d4a95a"></i>구독(막대 상단)</span>':'')+'<span class="hint">막대 클릭 = 해당 연도 기준 · '+(S.metric==='gp'?'▲ 개선 ▼ 악화 (전년 금액차, 백만원)':'▲▼ 전년비')+'</span>');
+  renderSubStrip(data);
+}
+function renderSubStrip(data){
+  const el=$('#substrip');if(!el)return;
+  if(S.metric!=='sales'){el.innerHTML='';return;}
+  const i=data.findIndex(d=>d.y===S.year),d=data[i],p=i>0?data[i-1]:null;
+  if(!d||d.na||!d.v){el.innerHTML='';return;}
+  const lump=d.v-d.sb,hasP=p&&!p.na&&p.v,plump=hasP?p.v-p.sb:null;
+  const part=(S.span==='full'&&d.y===LASTY&&LASTM<12)?' (~'+LASTM+'월)':(S.span==='sync'?' ('+(S.month===1?'1월':'1~'+S.month+'월')+')':'');
+  const sg=!hasP?'':((p.sb>0&&d.sb/p.sb<10)?gr(d.sb,p.sb):(d.sb>0?'<span class="d na">신규</span>':'<span class="d na">-</span>'));
+  const sh=d.v?d.sb/d.v:0,psh=hasP&&p.v?p.sb/p.v:null;
+  const tip='구독 정의: '+B().subNote+' · 전년비는 직전 연도 대비';
+  el.innerHTML='<div class="substrip" title="'+tip+'"><div class="st-h">'+d.y+'년'+part+' 일시불 · 구독<small>참고</small></div>'+
+    '<div class="ss"><span class="l">일시불</span><b>'+M(lump)+'</b>'+(hasP?gr(lump,plump):'')+'</div>'+
+    '<div class="ss"><span class="l">구독</span><b>'+M(d.sb)+'</b>'+sg+'</div>'+
+    '<div class="ss"><span class="l">구독비중</span><b>'+PCT(sh)+'</b>'+(psh==null?'':pp(sh,psh))+'</div></div>';
+}
+function drawMonthly(){
+  const el=$('#tbox');if(!el)return;
+  const f=filt(S.metric==='grp');let series=[];
+  if(S.metric==='grp'){
+    const g=monthlyGroups(LASTY,f);
+    series=GR.map((n,i)=>({name:n,color:GC[n],w:2.6,dash:'',vals:g[i].slice(1,availM(LASTY)+1).map(v=>v)}));
+  } else {
+    const ys=[];for(let k=0;k<S.mspan;k++){const y=LASTY-k;if(hasYear(y))ys.push(y);}
+    const mp=monthlyPass(ys,f);
+    series=ys.map((y,k)=>{const o=mp[y],n=availM(y),vals=[];
+      for(let m=1;m<=n;m++){let v;
+        if(S.metric==='sales')v=o.s[m];else if(S.metric==='gp')v=o.rc[m];else if(S.metric==='inv')v=o.inv[m];
+        else v=mgAt(o,m);
+        vals.push(v);}
+      return {name:String(y),color:SERC[Math.min(k,SERC.length-1)],w:k===0?3.2:2,dash:k>=2?(k===2?'6 4':(k===3?'2 4':'10 4 2 4')):'',vals:vals};});
+  }
+  const W=Math.max(el.clientWidth,260),H=(W<480?235:290)+TREND_X,mL=W<480?40:48,mR=10,mT=10,mB=26,iw=W-mL-mR,ih=H-mT-mB;
+  const all=[];series.forEach(s=>s.vals.forEach(v=>{if(v!=null&&isFinite(v))all.push(v);}));
+  if(!all.length){el.innerHTML='<div class="nodata">표시할 데이터가 없습니다.</div>';return;}
+  let lo=Math.min.apply(null,all),hi=Math.max.apply(null,all);
+  const ticks=nice(lo,hi,4),mn=ticks[0],mx=ticks[ticks.length-1];
+  const sx=m=>mL+(m-1)*(iw/11),sy=v=>mT+(mx-v)/(mx-mn||1)*ih;
+  let svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+metricName()+' 월별 추이">';
+  ticks.forEach(t=>{svg+='<line x1="'+mL+'" x2="'+(W-mR)+'" y1="'+sy(t)+'" y2="'+sy(t)+'" stroke="#edf1ef"/><text x="'+(mL-6)+'" y="'+(sy(t)+4)+'" text-anchor="end" font-size="10.5" fill="#78828d">'+fmtMetric(t)+'</text>';});
+  if(mn<0&&mx>0)svg+='<line x1="'+mL+'" x2="'+(W-mR)+'" y1="'+sy(0)+'" y2="'+sy(0)+'" stroke="#9aa8a1"/>';
+  for(let m=1;m<=12;m++)svg+='<text x="'+sx(m)+'" y="'+(H-9)+'" text-anchor="middle" font-size="11.5" fill="#4b5663">'+m+(W<480?'':'월')+'</text>';
+  series.slice().reverse().forEach(s=>{
+    const pts=[];s.vals.forEach((v,i)=>{if(v!=null&&isFinite(v))pts.push([sx(i+1),sy(v)]);});
+    if(pts.length>1)svg+='<path d="M'+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' L')+'" fill="none" stroke="'+s.color+'" stroke-width="'+s.w+'" stroke-linejoin="round" stroke-linecap="round"'+(s.dash?' stroke-dasharray="'+s.dash+'"':'')+'/>';
+    if(pts.length){const p=pts[pts.length-1];svg+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="'+(s.w>3?5:4)+'" fill="'+s.color+'" stroke="#fff" stroke-width="2"/>';}
+  });
+  // 월별 툴팁 밴드
+  const bw=iw/11;
+  for(let m=1;m<=12;m++){
+    const rows=series.map(s=>{const v=s.vals[m-1];return v==null?null:'<span style=\'color:#fff\'>'+s.name+(S.metric==='grp'?'':'년')+' '+fmtMetric(v)+'</span>';}).filter(Boolean);
+    if(!rows.length)continue;
+    svg+='<rect x="'+(sx(m)-bw/2)+'" y="'+mT+'" width="'+bw+'" height="'+ih+'" fill="transparent" data-tip="<b>'+m+'월</b><br>'+rows.join('<br>')+'"/>';
+  }
+  svg+='</svg>';el.innerHTML=svg;
+  $('#tleg').innerHTML=series.map(s=>'<span><i class="ln" style="border-top-color:'+s.color+(s.dash?';border-top-style:dashed':'')+'"></i>'+s.name+(S.metric==='grp'?'':'년')+'</span>').join('');
+}
+
+/* ---------- composition ---------- */
+function arc(cx,cy,r0,r1,a0,a1){
+  const p=(r,a)=>[cx+r*Math.cos(a),cy+r*Math.sin(a)],lg=(a1-a0)>Math.PI?1:0,A=p(r1,a0),Bb=p(r1,a1),C=p(r0,a1),Dd=p(r0,a0);
+  return 'M'+A+' A'+r1+','+r1+' 0 '+lg+' 1 '+Bb+' L'+C+' A'+r0+','+r0+' 0 '+lg+' 0 '+Dd+' Z';
+}
+function vendColors(items){ // 거래선: 고유 색상(상위 거래선은 고정색), 나머지는 미사용 색 배정
+  const used={},out={};
+  items.forEach(it=>{if(it.i>=0&&it.i<VPAL.length&&!it.other){out[it.i]=VPAL[it.i];used[VPAL[it.i]]=1;}});
+  items.forEach(it=>{if(out[it.i])return;if(it.other||it.i<0){out[it.i]=GRAY;return;}const c=VPAL.find(x=>!used[x]);out[it.i]=c||GRAY;used[c]=1;});
+  return out;
+}
+function renderComp(){
+  const box=$('#comp'),ab=per(),Y=S.year,Mo=S.month,c=B().cube;
+  if(needsPL()&&!hasPL()){box.innerHTML='<div class="p-head"><div><h2>구성비</h2></div></div>'+noPL();return;}
+  if(S.metric==='opm'){
+    const f=filt(true),mp=by('grp',Y,ab[0],ab[1],f);
+    const rows=GR.map((g,i)=>{const o=mp.get(i)||{s:0,gp:0,sk:0};return {i:i,g:g,m:mg(o),l:mgL(o),gp:o.gp,s:o.s};}).filter(r=>r.s&&r.m!=null&&r.g!=='기타');
+    const fv=filt(false,true),vm=by('vend',Y,ab[0],ab[1],fv),vn=c.dims.vend;
+    const vrows=[];vm.forEach((o,i)=>{if(vn[i]==='기타 거래선'||!o.s||mg(o)==null)return;vrows.push({i:i,g:vn[i],m:mg(o),l:mgL(o),gp:o.gp,s:o.s});});
+    vrows.sort((a,b)=>b.s-a.s);const vtop=vrows.slice(0,5);
+    const mx=Math.max(0.01,Math.max.apply(null,rows.concat(vtop).map(r=>Math.abs(r.m))));
+    const line=(r,kind)=>'<button type="button" class="mrow'+(kind==='v'?' v':'')+((kind==='v'?(S.vend===r.g):(S.grp===r.i))?' sel':'')+'" data-set="'+(kind==='v'?'vend':'grp')+':'+r.i+'" data-tip="'+r.g+' 매출이익 '+M(r.gp)+' / 매출 '+M(r.s)+'"><span class="nm" title="'+r.g+'">'+r.g+'</span><span class="mtrack"><i style="width:'+(Math.max(r.m,0)/mx*100)+'%"></i></span><span class="vv">'+PCT(r.m)+'<small class="lp">일시불 '+(r.l==null?'-':(r.l*100).toFixed(1))+'</small></span></button>';
+    box.innerHTML='<div class="p-head"><div><h2>그룹별 이익율</h2><div class="note">'+perLabel()+' · '+B().short+' · 채널 '+chName()+'</div></div></div>'+
+     rows.map(r=>line(r,'g')).join('')+
+     '<div class="mdiv" aria-hidden="true"></div><div class="msub">주요 거래선 (매출 Best 5)</div>'+
+     (vtop.length?vtop.map(r=>line(r,'v')).join(''):'<div class="subnote">표시할 거래선이 없습니다.</div>')+
+     '<div class="subnote">그룹·거래선을 누르면 아래 표가 해당 항목으로 좁혀집니다. (기타 제외)</div>';
+    return;
+  }
+  if(S.metric==='gp'){
+    const dim=S.comp==='grp'?'grp':'vend',f=filt(S.comp==='grp',S.comp==='vend'),names=c.dims[dim];
+    const cur=by(dim,Y,ab[0],ab[1],f),py=hasYear(Y-1)?by(dim,Y-1,ab[0],ab[1],f):null,hasP=!!py;
+    let items=[];cur.forEach((o,i)=>items.push({i:i,name:names[i],v:o.rc,p:py&&py.get(i)?py.get(i).rc:0}));
+    if(py)py.forEach((o,i)=>{if(!cur.has(i))items.push({i:i,name:names[i],v:0,p:o.rc});});
+    let tv=0,tp=0;items.forEach(x=>{tv+=x.v;tp+=x.p;});
+    items=items.filter(x=>x.v!==0||x.p!==0);
+    if(dim==='grp')items.sort((a,b)=>a.i-b.i);
+    else{const real=items.filter(x=>x.name!=='기타 거래선').sort((a,b)=>Math.abs(b.v)-Math.abs(a.v)),bucket=items.filter(x=>x.name==='기타 거래선');
+      const keep=real.slice(0,COMP_N),rest=real.slice(COMP_N).concat(bucket),sm=k=>rest.reduce((a,x)=>a+(x[k]||0),0);
+      items=keep.concat(rest.length?[{i:-1,name:'기타 거래선',v:sm('v'),p:sm('p'),other:true}]:[]);items.sort((a,b)=>(a.i===-1)-(b.i===-1)||Math.abs(b.v)-Math.abs(a.v));}
+    const cols={};if(dim==='grp')items.forEach(x=>cols[x.i]=GC[x.name]);else{const vc=vendColors(items);items.forEach(x=>cols[x.i]=x.i===-1?GRAY:vc[x.i]);}
+    const dl=(a,b)=>{if(!hasP)return '<span class="dd dflat">-</span>';const d=a-b;if(Math.abs(d)<500)return '<span class="dd dflat">■ 0</span>';return '<span class="dd '+(d>0?'dup':'ddn')+'">'+(d>0?'▲ ':'▼ ')+M(Math.abs(d))+'</span>';};
+    const prow=x=>{const sel=dim==='grp'?S.grp===x.i:(S.vend!=null&&x.name===S.vend);
+      return '<button type="button" class="crow gp'+(sel?' sel':'')+'" '+(dim==='grp'?'data-set="grp:'+x.i+'"':(x.i>=0&&!x.other?'data-set="vend:'+x.i+'"':''))+'><i class="dot" style="background:'+cols[x.i]+'"></i><span class="nm" title="'+x.name+'">'+x.name+'</span><span class="py">'+(hasP?M(x.p):'-')+'</span><span class="cy">'+M(x.v)+'</span>'+dl(x.v,x.p)+'</button>';};
+    box.innerHTML='<div class="p-head gph"><div class="gph-top"><h2>경상이익 구성비</h2>'+
+     '<div class="seg" role="group" aria-label="구성 기준"><button type="button" data-set="comp:vend" aria-pressed="'+(S.comp==='vend')+'">거래선</button><button type="button" data-set="comp:grp" aria-pressed="'+(S.comp==='grp')+'">그룹</button></div></div>'+
+     '<div class="note">'+perLabel()+' · '+(dim==='grp'?'그룹별':'거래선 상위 '+COMP_N)+' · 백만원</div></div>'+
+     '<div class="clist"><div class="crow gp chd" aria-hidden="true"><i></i><span style="text-align:left"></span><span>전년</span><span>금년</span><span>증감</span></div>'+
+     '<div class="crow gp gtot"><i></i><span class="nm">합계</span><span class="py">'+(hasP?M(tp):'-')+'</span><span class="cy">'+M(tv)+'</span>'+dl(tv,tp)+'</div>'+items.map(prow).join('')+'</div>';
+    return;
+  }
+  const dim=S.comp==='grp'?'grp':'vend',f=filt(S.comp==='grp',S.comp==='vend');
+  const names=c.dims[dim];
+  let items=[];
+  if(S.metric==='inv'){const mp=stockBy(dim,Y,Mo,f);mp.forEach((v,i)=>items.push({i:i,name:names[i],v:v}));}
+  else{const mp=by(dim,Y,ab[0],ab[1],f);mp.forEach((o,i)=>items.push({i:i,name:names[i],v:S.metric==='gp'?o.rc:o.s,sb:o.sb}));}
+  const sgn=items.length&&items.every(x=>x.v<=0)&&items.some(x=>x.v<0)?-1:1;items.forEach(x=>{x.v*=sgn;});
+  let tot=0;items.forEach(x=>tot+=x.v);
+  items=items.filter(x=>x.v!==0);
+  if(dim==='grp')items.sort((a,b)=>a.i-b.i);
+  else{const real=items.filter(x=>x.name!=='기타 거래선').sort((a,b)=>b.v-a.v),bucket=items.filter(x=>x.name==='기타 거래선');
+    const keep=real.slice(0,5),rest=real.slice(5).concat(bucket),rv=rest.reduce((a,x)=>a+x.v,0),rsb=rest.reduce((a,x)=>a+(x.sb||0),0);
+    items=keep.concat(rest.length?[{i:-1,name:'기타 거래선',v:rv,sb:rsb,other:true}]:[]);items.sort((a,b)=>(a.i===-1)-(b.i===-1)||b.v-a.v);}
+  const showSub=(S.metric==='sales'||S.metric==='grp');
+  const cols={};
+  if(dim==='grp')items.forEach(x=>cols[x.i]=GC[x.name]);else{const vc=vendColors(items);items.forEach(x=>cols[x.i]=x.i===-1?GRAY:vc[x.i]);}
+  const anyNeg=items.some(x=>x.v<0);
+  const nm=S.metric==='gp'?(sgn<0?'경상손실':'경상이익'):(S.metric==='inv'?'재고':'매출'),sub=S.metric==='inv'?(Y+'.'+(Mo<10?'0'+Mo:Mo)+' 말'):perLabel();
+  let h='<div class="p-head"><div><h2>'+nm+' 구성비</h2><div class="note">'+sub+' · '+(dim==='grp'?'그룹별':'거래선별 (상위 5) · 눌러서 연동')+'</div></div>'+
+   '<div class="seg" role="group" aria-label="구성 기준"><button type="button" data-set="comp:vend" aria-pressed="'+(S.comp==='vend')+'">거래선</button><button type="button" data-set="comp:grp" aria-pressed="'+(S.comp==='grp')+'">그룹</button></div></div><div class="comp">';
+  if(!anyNeg&&tot>0){
+    const sz=200,cc=sz/2;let a=-Math.PI/2,sv='<svg class="donut" viewBox="0 0 '+sz+' '+sz+'" role="img" aria-label="'+nm+' 구성비 도넛">';
+    items.forEach(x=>{if(x.v<=0)return;const da=x.v/tot*Math.PI*2,a1=a+da,full=da>=Math.PI*2-1e-6;
+      sv+='<path d="'+(full?arc(cc,cc,58,92,a,a+Math.PI*2-0.0001):arc(cc,cc,58,92,a,a1))+'" fill="'+cols[x.i]+'" stroke="#fff" stroke-width="2.5" data-tip="'+x.name+' '+M(x.v*sgn)+' ('+PCT(x.v/tot)+')"/>';a=a1;});
+    sv+='<text x="'+cc+'" y="'+(cc-2)+'" text-anchor="middle" font-size="12" fill="#78828d">합계</text><text x="'+cc+'" y="'+(cc+18)+'" text-anchor="middle" font-size="19" font-weight="800" fill="#1d2733">'+M(tot*sgn)+'</text></svg>';h+=sv;
+  } else h+='<div class="subnote">손익이 +/− 혼재라 도넛 대신 목록으로 표시합니다. (전체 손실이면 손실 기여도 도넛)</div>';
+  h+='<div class="clist">'+items.map(x=>{const sel=dim==='grp'?S.grp===x.i:(S.vend!=null&&x.name===S.vend);
+    return '<button type="button" class="crow'+(sel?' sel':'')+(showSub?' hs':'')+'" '+(dim==='grp'?'data-set="grp:'+x.i+'"':(x.i>=0&&!x.other?'data-set="vend:'+x.i+'"':''))+'><i class="dot" style="background:'+cols[x.i]+'"></i><span class="nm">'+x.name+'</span><span class="vv">'+M(x.v*sgn)+'</span><span class="pp">'+(tot&&!anyNeg?PCT(x.v/tot):'-')+'</span>'+(showSub?'<span class="sx">일 '+M(x.v-(x.sb||0))+'<br>구 '+M(x.sb||0)+'</span>':'')+'</button>';}).join('')+'</div></div>';
+  box.innerHTML=h;
+}
+
+/* ---------- table ---------- */
+const TCOL={
+  md:[['grp','그룹',0,1],['name','MD',0,0],['lump','일시불',1,0],['sb','구독',1,0],['sxm','일시불·구독',1,0],['s','매출',1,0],['share','구성비',1,0],['yoy','전년비',1,0],['rc','경상이익',1,0],['gp','매출이익',1,0],['ml','일시불',1,0],['mg','이익율',1,0],['inv','재고',1,0]],
+  item:[['grp','그룹',0,1],['md','MD',0,0],['name','품목',0,0],['lump','일시불',1,0],['sb','구독',1,0],['sxm','일시불·구독',1,0],['s','매출',1,0],['share','구성비',1,0],['yoy','전년비',1,0],['rc','경상이익',1,0],['gp','매출이익',1,0],['ml','일시불',1,0],['mg','이익율',1,0],['inv','재고',1,0]],
+  vend:[['name','거래선',0,1],['lump','일시불',1,0],['sb','구독',1,0],['sxm','일시불·구독',1,0],['s','매출',1,0],['share','구성비',1,0],['yoy','전년비',1,0],['rc','경상이익',1,0],['gp','매출이익',1,0],['ml','일시불',1,0],['mg','이익율',1,0],['inv','재고',1,0]]
+};
+function tableRows(){
+  const f=filt(false,S.tab==='vend'),ab=per(),Y=S.year,Mo=S.month,tab=S.tab,c=B().cube,D=dom(),pl=hasPL();
+  const dim=tab==='item'?'item':(tab==='md'?'md':'vend'),names=c.dims[dim];
+  const cur=by(dim,Y,ab[0],ab[1],f),py=hasYear(Y-1)?by(dim,Y-1,ab[0],ab[1],f):null,st=stockBy(dim,Y,Mo,f);
+  const rows=[],tot=blank();let tpy=0,tinv=0;
+  cur.forEach((o,k)=>{ if(!o.s&&!o.gp&&!o.rc)return; const p=py&&py.get(k)?py.get(k).s:0;
+    let md='',grp='';
+    if(tab==='item'){md=c.dims.md[D.im[k]]||'';grp=GR[D.ig[k]]||'';}
+    else if(tab==='md'){const t=D.mg[k];grp=t?GR[t.k]+(t.share<0.9?' 외':''):'';}
+    rows.push({k:k,name:names[k],md:md,grp:grp,s:o.s,sb:o.sb,sxm:o.sb,lump:o.s-o.sb,gp:pl?o.gp:null,rc:pl?o.rc:null,mg:pl?mg(o):null,ml:pl?mgL(o):null,inv:pl?(st.get(k)||0):null,yoy:p?(o.s/p-1):null,p:p});
+    tot.s+=o.s;tot.sb+=o.sb;tot.gp+=o.gp;tot.rc+=o.rc;tot.sk+=o.sk;tot.fk+=o.fk;tpy+=p;});
+  st.forEach(v=>{tinv+=v;});
+  rows.forEach(r=>r.share=tot.s?r.s/tot.s:0);
+  return {rows:rows,tot:tot,tpy:tpy,tinv:tinv};
+}
+function sortRows(rows){
+  const k=S.sort.key,d=S.sort.dir;
+  rows.sort((a,b)=>{let x=a[k],y=b[k];
+    if(typeof x==='string'||typeof y==='string'){x=x||'';y=y||'';return d*String(x).localeCompare(String(y),'ko');}
+    if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return d*(x-y);});
+}
+function cellHtml(key,r,pl){
+  return cellInner(key,r,pl).replace('<td ','<td data-c="'+key+'" ').replace('<td>','<td data-c="'+key+'">');
+}
+function cellInner(key,r,pl){
+  switch(key){
+    case 'name':return '<td class="'+(S.tab==='vend'?'fc':'nb')+'" title="'+r.name+'">'+r.name+'</td>';
+    case 'md':case 'grp':return '<td class="mut'+(key==='grp'&&S.tab!=='vend'?' fc':'')+'">'+(r[key]||'-')+'</td>';
+    case 'lump':return '<td class="num sx">'+M(r.lump)+'</td>';
+    case 'sb':return '<td class="num sx">'+M(r.sb)+'</td>';
+    case 'sxm':return '<td class="num sxm">일 '+M(r.lump)+'<br>구 '+M(r.sb)+'</td>';
+    case 's':return '<td class="num"><b>'+M(r.s)+'</b></td>';
+    case 'share':return '<td class="num">'+PCT(r.share)+'</td>';
+    case 'yoy':return '<td class="num">'+(r.yoy==null?NA:dsp(r.yoy*100,Math.abs(r.yoy*100).toFixed(1)+'%'))+'</td>';
+    case 'rc':return '<td class="num">'+(r.rc==null?'-':M(r.rc))+'</td>';
+    case 'gp':return '<td class="num">'+(r.gp==null?'-':M(r.gp))+'</td>';
+    case 'ml':return '<td class="num">'+(r.ml==null?'-':PCT(r.ml))+'</td>';
+    case 'mg':return '<td class="num mgb">'+(r.mg==null?'-':PCT(r.mg))+'</td>';
+    case 'inv':return '<td class="num">'+(r.inv==null?'-':M(r.inv))+'</td>';
+  }
+}
+function renderTable(){
+  const tab=S.tab,pl=hasPL(),t=tableRows(),cols=TCOL[tab];
+  if(!cols.some(c=>c[0]===S.sort.key))S.sort={key:'s',dir:-1};
+  sortRows(t.rows);
+  const lim=S.more?t.rows.length:10,show=t.rows.slice(0,lim);
+  const tabName={item:'품목',md:'MD',vend:'거래선'}[tab];
+  let h='<div class="p-head"><div><h2>주요 '+tabName+' 실적</h2><div class="note">'+perLabel()+' · '+B().short+' · 채널 '+chName()+(S.grp!=null?' · '+GR[S.grp]:'')+(S.vend!=null&&tab!=='vend'?' · 거래선 '+S.vend:'')+' · 머리글을 눌러 정렬</div></div>'+
+   '<div class="seg" role="group" aria-label="표 기준"><button type="button" data-set="tab:md" aria-pressed="'+(tab==='md')+'">MD</button><button type="button" data-set="tab:item" aria-pressed="'+(tab==='item')+'">품목</button><button type="button" data-set="tab:vend" aria-pressed="'+(tab==='vend')+'">거래선</button></div></div>';
+  h+='<div class="twrap"><table class="ttable"><thead><tr><th class="num rk" style="width:34px;text-align:center"><span style="font-size:11.5px;color:var(--ink3);font-weight:700">#</span></th>'+cols.map(c=>{
+    const on=S.sort.key===c[0],ar=on?(S.sort.dir<0?'▼':'▲'):'';
+    return '<th data-c="'+c[0]+'" class="'+(c[2]?'num':'')+(c[3]?' fc':'')+'" aria-sort="'+(on?(S.sort.dir<0?'descending':'ascending'):'none')+'"><button type="button" class="'+(on?'on':'')+'" data-sort="'+c[0]+'">'+(c[0]==='sxm'?'<span class="hd-l">일시불·구독</span><span class="hd-s">일·구</span>':(c[0]==='ml'?'<span class="hd-l">일시불 이익율</span><span class="hd-s">일시불%</span>':(c[0]==='mg'?'<b>'+c[1]+'</b>':c[1])))+(ar?' <span aria-hidden="true">'+ar+'</span>':'')+'</button></th>';}).join('')+'</tr></thead><tbody>';
+  h+=show.map((r,i)=>'<tr'+(tab==='vend'&&S.vend!=null&&r.name===S.vend?' class="selrow"':'')+'><td class="num rk" style="text-align:center;color:var(--ink3);font-size:12px">'+(i+1)+'</td>'+cols.map(c=>cellHtml(c[0],r,pl)).join('')+'</tr>').join('');
+  const sumCells=cols.map(c=>{if(c[3])return '<td class="fc">'+(tab==='vend'?'합계 ('+t.rows.length+'개)':'합계')+'</td>';switch(c[0]){case 'name':return '<td class="nb">('+t.rows.length+'개)</td>';case 'lump':return '<td class="num sx">'+M(t.tot.s-t.tot.sb)+'</td>';case 'sb':return '<td class="num sx">'+M(t.tot.sb)+'</td>';case 'sxm':return '<td class="num sxm">일 '+M(t.tot.s-t.tot.sb)+'<br>구 '+M(t.tot.sb)+'</td>';case 's':return '<td class="num">'+M(t.tot.s)+'</td>';case 'share':return '<td class="num">100%</td>';
+    case 'yoy':return '<td class="num">'+(t.tpy?dsp((t.tot.s/t.tpy-1)*100,Math.abs((t.tot.s/t.tpy-1)*100).toFixed(1)+'%'):NA)+'</td>';
+    case 'rc':return '<td class="num">'+(pl?M(t.tot.rc):'-')+'</td>';
+    case 'gp':return '<td class="num">'+(pl?M(t.tot.gp):'-')+'</td>';case 'ml':return '<td class="num">'+(pl&&mgL(t.tot)!=null?PCT(mgL(t.tot)):'-')+'</td>';case 'mg':return '<td class="num mgb">'+(pl&&mg(t.tot)!=null?PCT(mg(t.tot)):'-')+'</td>';case 'inv':return '<td class="num">'+(pl?M(t.tinv):'-')+'</td>';default:return '<td></td>';}}).map((x,i)=>x.replace('<td','<td data-c="'+cols[i][0]+'"')).join('');
+  h+='<tr class="sum"><td class="rk"></td>'+sumCells+'</tr></tbody></table></div>';
+  if(!pl)h+='<div class="subnote">일보 기준에서는 경상이익·매출이익·이익율·재고를 제공하지 않습니다. 매출(환산/결산)을 선택하세요.</div>';
+  if(t.rows.length>10)h+='<button type="button" class="tmore" data-set="more:'+(S.more?0:1)+'">'+(S.more?'상위 10개만 보기':'전체 '+t.rows.length+'개 보기')+'</button>';
+  $('#tbl').innerHTML=h;
+}
+
+/* ---------- detail ---------- */
+const ORDER=['grp','md','item','vend'],LBL={grp:'그룹',md:'MD',item:'품목',vend:'거래선',ch:'채널'};
+const SEQ={grp:['grp','md','item','vend'],md:['md','item','vend'],item:['item','vend'],vend:['vend','item','md']};
+const chIdx=n=>CHN.indexOf(n);
+const CHP=()=>[['all','전사',[]],['zy','직영(=B2C+B2B)',[chIdx('B2C'),chIdx('B2B')]],['b2c','B2C',[chIdx('B2C')]],['b2b','B2B',[chIdx('B2B')]],['on','온라인',[chIdx('온라인')]],['sp','특수',[chIdx('특수')]]];
+const setKey=a=>a.slice().sort().join(',');
+function chKey(){const k=setKey(Array.from(S.chs)),p=CHP().find(x=>setKey(x[2])===k);return p?p[0]:'custom';}
+function renderChSel(){const cur=chKey();$('#dCh').innerHTML=CHP().map(p=>'<option value="'+p[0]+'"'+(p[0]===cur?' selected':'')+'>'+p[1]+'</option>').join('')+(cur==='custom'?'<option value="custom" selected>'+chName()+'</option>':'');}
+function fillSel(el,from,to,sel,fmt){let h='';for(let v=from;v<=to;v++)h+='<option value="'+v+'"'+(v===sel?' selected':'')+'>'+(fmt?fmt(v):v)+'</option>';el.innerHTML=h;}
+function pathF(c){const f={chm:chMask(),grp:null,md:null,item:null,vend:null};
+  DS.path.forEach(p=>{const i=c.dims[p.ax].indexOf(p.name);f[p.ax]=i<0?-2:i;});return f;}
+function renderDetail(){
+  const b=B(),c=b.cube,pl=b.pl;
+  document.querySelectorAll('#dView button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===DS.view));
+  $('#dBasis').innerHTML=Object.keys(BASIS).map(k=>'<option value="'+k+'"'+(k===S.basis?' selected':'')+'>'+BASIS[k].label+'</option>').join('');
+  renderChSel();
+  (DS.view!=='look'?$('#dChSlotF'):$('#dChSlotL')).appendChild($('#dCh'));
+  $('#dCh').style.display=(DS.view!=='look'&&DS.f5.v==='ch')?'none':'';
+  $('#dtLook').style.display=DS.view==='look'?'':'none';
+  $('#dtFive').style.display=DS.view!=='look'?'':'none';$('#dSep').style.display=DS.view!=='look'?'':'none';
+  if(DS.view!=='look'){renderFive();return;}
+  const y=DS.y,seq=SEQ[DS.ax]||SEQ.grp,ax=seq[Math.min(DS.path.length,seq.length-1)];
+  fillSel($('#dY'),YEARS[0],LASTY,y,v=>v+'년');
+  const am=availM(y);if(DS.m2>am)DS.m2=am;if(DS.m1>DS.m2)DS.m1=DS.m2;
+  fillSel($('#dM1'),1,am,DS.m1,v=>v+'월');fillSel($('#dM2'),1,am,DS.m2,v=>v+'월');
+  document.querySelectorAll('#dAxis button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.ax===DS.ax));
+  const f=pathF(c);
+  const cur=by(ax,y,DS.m1,DS.m2,f),py=hasYear(y-1)?by(ax,y-1,DS.m1,DS.m2,f):null,st=stockBy(ax,y,DS.m2,f);
+  const names=c.dims[ax],q=DS.q.trim().toLowerCase();
+  const rows=[],t={s:0,gp:0,rc:0,op:0,q:0,ps:0,inv:0,sk:0,fk:0};
+  cur.forEach((o,k)=>{const nm=names[k];if(q&&nm.toLowerCase().indexOf(q)<0)return;const p=py&&py.get(k)?py.get(k).s:0;
+    rows.push({k:k,n:nm,o:o,p:p,inv:st.get(k)||0});t.s+=o.s;t.gp+=o.gp;t.rc+=o.rc;t.op+=o.op;t.q+=o.q;t.ps+=p;t.sk+=o.sk;t.fk+=o.fk;t.inv+=st.get(k)||0;});
+  rows.sort((a,b2)=>b2.o.s-a.o.s);
+  const dash=v=>pl?v:'-',canDrill=DS.path.length<seq.length;
+  const tr=r=>'<tr><td title="'+r.n+'">'+(canDrill?'<button type="button" class="dn-btn" data-drill="'+r.k+'">'+r.n+'<span aria-hidden="true">›</span></button>':r.n)+'</td><td>'+M(r.o.s)+'</td><td>'+(t.s?PCT(r.o.s/t.s):'-')+'</td><td>'+gr(r.o.s,r.p)+'</td><td>'+dash(M(r.o.rc))+'</td><td>'+dash(M(r.o.gp))+'</td><td>'+dash(mgL(r.o)==null?'-':PCT(mgL(r.o)))+'</td><td class="mgb">'+dash(mg(r.o)==null?'-':PCT(mg(r.o)))+'</td><td>'+dash(M(r.o.op))+'</td><td>'+nf.format(Math.round(r.o.q))+'</td><td>'+dash(M(r.inv))+'</td></tr>';
+  let head='<nav class="crumb" aria-label="탐색 경로"><button type="button" data-crumb="0"'+(DS.path.length?'':' aria-current="true"')+'>전체</button>';
+  DS.path.forEach((p,i)=>{head+='<span class="sep">›</span><button type="button" data-crumb="'+(i+1)+'"'+(i===DS.path.length-1?' aria-current="true"':'')+'>'+LBL[p.ax]+' '+p.name+'</button>';});
+  head+='</nav>';
+  let mini='';
+  if(DS.path.length>=1){
+    const mp=monthlyPass([y],f)[y],am2=availM(y);
+    const row=(nm,fn)=>'<tr><td>'+nm+'</td>'+Array.from({length:am2},(_,i)=>'<td>'+fn(i+1)+'</td>').join('')+'<td><b>'+fn(0)+'</b></td></tr>';
+    const sum=a=>{let x=0;for(let m=1;m<=am2;m++)x+=a[m];return x;};
+    mini='<div class="dnote"><b>선택 경로 월별 실적 ('+y+'년, 백만원)</b></div><table class="dtable mini"><thead><tr><th>항목</th>'+Array.from({length:am2},(_,i)=>'<th>'+(i+1)+'월</th>').join('')+'<th>합계</th></tr></thead><tbody>'+
+      row('매출',m=>M(m?mp.s[m]:sum(mp.s)))+
+      (pl?row('경상이익',m=>M(m?mp.rc[m]:sum(mp.rc)))+row('매출이익',m=>M(m?mp.gp[m]:sum(mp.gp)))+row('일시불 이익율',m=>{const d=mp.sk,f2=mp.fk,g=m?mp.gp[m]-mp.fk[m]:sum(mp.gp)-sum(mp.fk),dd=m?d[m]-f2[m]:sum(d)-sum(f2);return dd>0?PCT(g/dd):'-';})+row('이익율',m=>{const d=MARGIN_DENOM==='k'?mp.sk:mp.s,g=m?mp.gp[m]:sum(mp.gp),dd=m?d[m]:sum(d);return dd?PCT(g/dd):'-';}):'')+'</tbody></table>';
+  }
+  $('#dBody').innerHTML=head+'<div class="dnote">'+y+'년 '+DS.m1+'~'+DS.m2+'월 · '+b.label+' · 채널 '+chName()+' · 재고는 '+DS.m2+'월 말 · 단위 백만원(수량 대) · 영업이익은 참고용</div>'+
+   '<table class="dtable"><thead><tr><th>'+LBL[ax]+'</th><th>매출</th><th>구성비</th><th>전년비</th><th>경상이익</th><th>매출이익</th><th>일시불<br>이익율</th><th>이익율</th><th>영업이익(참고)</th><th>수량</th><th>재고</th></tr></thead><tbody>'+
+   '<tr class="sum"><td>합계</td><td>'+M(t.s)+'</td><td>100%</td><td>'+gr(t.s,t.ps)+'</td><td>'+dash(M(t.rc))+'</td><td>'+dash(M(t.gp))+'</td><td>'+dash(mgL(t)==null?'-':PCT(mgL(t)))+'</td><td class="mgb">'+dash(mg(t)==null?'-':PCT(mg(t)))+'</td><td>'+dash(M(t.op))+'</td><td>'+nf.format(Math.round(t.q))+'</td><td>'+dash(M(t.inv))+'</td></tr>'+rows.map(tr).join('')+'</tbody></table>'+mini;
+}
+
+/* ---------- 5년 월별 (구 "최근5년 추세" 복원) ---------- */
+function monthlyBy(dim,years,f,src,R0){
+  const b=B(),R=R0||b.cube.rows,N=R.y.length,D=R[dim],yset={};years.forEach(y=>{yset[y]=1;});
+  const mp=new Map(),tot={};years.forEach(y=>{tot[y]=new Array(13).fill(0);});
+  const chm=f.chm;
+  for(let i=0;i<N;i++){const y=R.y[i];if(!yset[y])continue;if(chm&&!chm[R.ch[i]])continue;
+    const k=D[i],m=R.m[i];let o=mp.get(k);if(!o){o={};years.forEach(yy=>{o[yy]=new Array(13).fill(0);});mp.set(k,o);}
+    o[y][m]+=src[i];tot[y][m]+=src[i];}
+  return {mp:mp,tot:tot};
+}
+function renderFive(){
+  const F=DS.f5;
+  document.querySelectorAll('#fView button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.fv===F.v));
+  $('#fMet').style.display=F.v==='ch'?'':'none';$('#dCh').style.display=F.v==='ch'?'none':'';
+  if($('#fMet').value!==F.m)$('#fMet').value=F.m;
+  if(F.v==='ch')renderFiveCh();else renderFiveCur();
+}
+function fiveYears(){const ys=[];for(let k=0;k<5;k++){const y=LASTY-k;if(hasYear(y))ys.push(y);}return ys;}
+/* 전체 월별: 선택 기준의 전 기간 + (결산 계열은) 일보DB 매출로 2022년 이전 보충. 손익·재고는 결산DB(2022~)에서만 */
+const PL0=DJ.years[0];
+function allYears(){const b=B(),ys=b.cube.years.slice(),ex=[];
+  if(b.cube===DJ)DI.years.forEach(y=>{if(y<PL0)ex.push(y);});
+  return {main:ys.sort((a,c)=>c-a),extra:ex.sort((a,c)=>c-a),all:ex.concat(ys).sort((a,c)=>c-a)};}
+function curYears(){if(DS.view==='all'){const a=allYears();return {ys:a.all,extra:a.extra,main:a.main};}const ys=fiveYears();return {ys:ys,extra:[],main:ys};}
+/* 현재 기준: 조회에서 고른 범위(경로)+채널 기준으로 판매→수량→단가→이익율→손익→재고 */
+function renderFiveCur(){
+  const b=B(),c=b.cube,pl=b.pl,Y=LASTY,N=LASTM,body=$('#dBody'),CY=curYears(),ys=CY.ys,f=pathF(c),mp=monthlyPass(CY.main,f);
+  const isEx=y=>CY.extra.indexOf(y)>=0;
+  if(CY.extra.length)Object.assign(mp,monthlyPass(CY.extra,pathF(DI),BASIS.sr));
+  const den=o=>MARGIN_DENOM==='k'?o.sk:o.s;
+  const sum=(a,ms)=>ms.reduce((t,m)=>t+a[m],0);
+  const rng=(y,m1,m2)=>{const r=[];for(let m=m1;m<=m2&&m<=availM(y);m++)r.push(m);return r;};
+  const price=(o,ms)=>{const qv=sum(o.q,ms);return qv>0?sum(o.s,ms)*1.1/qv:null;}; // 천원 · VAT 포함
+  const MET=[
+   {t:b.label,u:'백만원',pl:false,v:(o,ms)=>sum(o.s,ms),fmt:v=>M(v),ch:(a,b2)=>gr(a,b2)},
+   {t:'수량',u:'대',pl:false,v:(o,ms)=>sum(o.q,ms),fmt:v=>nf.format(Math.round(v)),ch:(a,b2)=>gr(a,b2)},
+   {t:'단가',u:'천원 · VAT 포함',pl:false,v:price,fmt:v=>nf.format(Math.round(v)),ch:(a,b2)=>gr(a,b2)},
+   {t:'일시불 이익율',u:'% · 구독 수수료 제외',pl:true,v:(o,ms)=>{const d=sum(o.sk,ms)-sum(o.fk,ms);return d>0?(sum(o.gp,ms)-sum(o.fk,ms))/d:null;},fmt:v=>(v*100).toFixed(1),ch:(a,b2)=>pp(a,b2)},
+   {t:'이익율 (결산)',u:'%',pl:true,v:(o,ms)=>{const d=sum(den(o),ms);return d?sum(o.gp,ms)/d:null;},fmt:v=>(v*100).toFixed(1),ch:(a,b2)=>pp(a,b2)},
+   {t:'손익(경상이익)',u:'백만원',pl:true,v:(o,ms)=>sum(o.rc,ms),fmt:v=>M(v),ch:(a,b2)=>(a==null||b2==null)?'<span class="d na">-</span>':dsp(a-b2,M(Math.abs(a-b2)))},
+   {t:'재고',u:'백만원 · 기말',pl:true,v:(o,ms)=>ms.length?o.inv[ms[ms.length-1]]:null,fmt:v=>M(v),ch:(a,b2)=>gr(a,b2)}
+  ];
+  let head='<nav class="crumb" aria-label="범위"><button type="button" data-crumb="0"'+(DS.path.length?'':' aria-current="true"')+'>'+(S.chs.size?chName():'전사')+'</button>';
+  DS.path.forEach((p,i)=>{head+='<span class="sep">›</span><button type="button" data-crumb="'+(i+1)+'"'+(i===DS.path.length-1?' aria-current="true"':'')+'>'+LBL[p.ax]+' '+p.name+'</button>';});
+  head+='</nav>';
+  let h=head+'<div class="dnote">'+(DS.view==='all'?'전체 ':'최근 ')+ys.length+'개년 · '+(CY.extra.length?CY.extra[CY.extra.length-1]+'~'+CY.extra[0]+'년은 일보DB 매출(손익·재고 없음, 2022년~은 '+b.label+') · ':'')+b.label+' · 단위 백만원(단가 천원, VAT 포함) · 진행연도의 분기계·연간은 가용월 기준(이탤릭=일부 월) · 전년비는 1~'+N+'월 동기</div>';
+  const totalAll=ys.reduce((t,y)=>t+Math.abs(sum(mp[y].s,rng(y,1,12))),0);
+  if(!totalAll){body.innerHTML=h+'<div class="nodata">선택한 범위에 데이터가 없습니다.<br>(기준을 바꾸면 거래선·품목 이름이 달라 비어 보일 수 있습니다)</div>';return;}
+  MET.forEach(mt=>{
+    if(mt.pl&&!pl)return;
+    const first=ys[ys.length-1];
+    const cell=(o,y,ms)=>{if(mt.pl&&isEx(y))return null;const v=mt.v(o,ms);return (v==null||!isFinite(v))?null:v;};
+    const sy=cell(mp[Y],Y,rng(Y,1,N)),sf=ys.length>1?cell(mp[first],first,rng(first,1,N)):null;
+    let t='<div class="blk"><div class="blk-h"><b>'+mt.t+' <small>'+mt.u+'</small></b><span>'+Y+'년 '+(N===1?'1월':'1~'+N+'월')+' '+(sy==null?'-':mt.fmt(sy))+'</span></div><div class="twrap"><table class="rtable"><thead><tr><th>연도</th>';
+    for(let qq=0;qq<4;qq++){for(let k=1;k<=3;k++)t+='<th>'+(qq*3+k)+'월</th>';t+='<th class="qs">'+(qq+1)+'Q</th>';}
+    t+='<th class="tot">연간</th><th>전년비<small>(1~'+N+'월)</small></th></tr></thead><tbody>';
+    ys.forEach(y=>{
+      const o=mp[y];t+='<tr'+(y===Y?' class="cur"':'')+'><td>'+y+(y===LASTY&&LASTM<12?'<small>~'+LASTM+'월</small>':'')+'</td>';
+      for(let qq=0;qq<4;qq++){const qm=[];
+        for(let k=1;k<=3;k++){const m=qq*3+k,av=m<=availM(y),v=av?cell(o,y,[m]):null;t+='<td'+(av?'':' class="na"')+'>'+(v==null?'–':mt.fmt(v))+'</td>';if(av)qm.push(m);}
+        const qv=qm.length?cell(o,y,qm):null;t+='<td class="qs'+(qm.length<3?' pt':'')+'">'+(qv==null?'–':mt.fmt(qv))+'</td>';}
+      const av=cell(o,y,rng(y,1,12));
+      const hasP=ys.indexOf(y-1)>=0&&isEx(y-1)===isEx(y),a1=cell(o,y,rng(y,1,N)),b1=hasP?cell(mp[y-1],y-1,rng(y-1,1,N)):null;
+      t+='<td class="tot">'+(av==null?'–':mt.fmt(av))+'</td><td>'+(hasP?mt.ch(a1,b1):'-')+'</td></tr>';
+    });
+    h+=t+'</tbody></table></div></div>';
+  });
+  if(!pl)h+='<div class="subnote">일보 기준에서는 이익율·손익·재고를 제공하지 않습니다. <button type="button" class="btn" data-set="basis:h">매출(환산)으로 보기</button></div>';
+  body.innerHTML=h;
+}
+/* 채널별 매출: 기존 화면 유지 (전사 / 직영(=B2C+B2B) / B2C / B2B / 온라인 / 특수) */
+function renderFiveCh(){
+  const b=B(),c=b.cube,R=c.rows,F=DS.f5,Y=LASTY,N=LASTM,body=$('#dBody');
+  if(F.m==='rc'&&!b.pl){body.innerHTML='<div class="nodata">경상이익은 결산DB 기준(매출 환산/결산)에서만 제공됩니다.<br><button type="button" class="btn" data-set="basis:h">매출(환산)으로 보기</button></div>';return;}
+  const CY=curYears(),ys=CY.ys,isEx=y=>CY.extra.indexOf(y)>=0,noV=y=>F.m==='rc'&&isEx(y);
+  const kind=F.m==='rc'?'gp':'sales',src=F.m==='rc'?R.rc:R[b.amt];
+  const r=monthlyBy('ch',CY.main,{chm:null},src);
+  if(CY.extra.length){const r2=monthlyBy('ch',CY.extra,{chm:null},DI.rows.a2,DI.rows);
+    r2.mp.forEach((o,k)=>{const t=r.mp.get(k);if(t)Object.assign(t,o);else r.mp.set(k,o);});
+    r.mp.forEach(o=>{CY.extra.forEach(y=>{if(!o[y])o[y]=new Array(13).fill(0);});});
+    Object.assign(r.tot,r2.tot);}
+  const synOf=(o,y)=>{let t=0;for(let m=1;m<=N;m++)t+=o[y][m];return t;};
+  const first=ys[ys.length-1];
+  function block(title,o){
+    const sy=synOf(o,Y),sf=ys.length>1?synOf(o,first):null;
+    let h='<div class="blk"><div class="blk-h"><b>'+title+'</b><span>'+Y+'년 '+(N===1?'1월':'1~'+N+'월')+' '+E(sy)+'억'+(sf==null?'':' · '+first+'→'+Y+' '+dtxt(kind,sy,sf))+'</span></div><div class="twrap"><table class="rtable"><thead><tr><th>연도</th>';
+    for(let qq=0;qq<4;qq++){for(let k=1;k<=3;k++)h+='<th>'+(qq*3+k)+'월</th>';h+='<th class="qs">'+(qq+1)+'Q</th>';}
+    h+='<th class="tot">연간</th><th>전년비<small>(1~'+N+'월)</small></th></tr></thead><tbody>';
+    ys.forEach(y=>{
+      h+='<tr'+(y===Y?' class="cur"':'')+'><td>'+y+(y===LASTY&&LASTM<12?'<small>~'+LASTM+'월</small>':'')+'</td>';
+      let ann=0;
+      for(let qq=0;qq<4;qq++){let qs=0,got=0;
+        for(let k=1;k<=3;k++){const m=qq*3+k,av=m<=availM(y);h+='<td'+(av?'':' class="na"')+'>'+(av&&!noV(y)?E(o[y][m]):'–')+'</td>';if(av&&!noV(y)){qs+=o[y][m];got++;ann+=o[y][m];}}
+        h+='<td class="qs'+(got<3?' pt':'')+'">'+(got?E(qs):'–')+'</td>';}
+      const hasP=ys.indexOf(y-1)>=0;
+      h+='<td class="tot">'+(noV(y)?'–':E(ann))+'</td><td>'+(hasP&&!noV(y)&&isEx(y-1)===isEx(y)?dtxt(kind,synOf(o,y),synOf(o,y-1)):'-')+'</td></tr>';
+    });
+    return h+'</tbody></table></div></div>';
+  }
+  const ci=n=>c.dims.ch.indexOf(n),zero=()=>{const o={};ys.forEach(y=>{o[y]=new Array(13).fill(0);});return o;};
+  const get=k=>r.mp.get(k)||zero();
+  const zy=zero();[ci('B2C'),ci('B2B')].forEach(k=>{const o=get(k);ys.forEach(y=>{for(let m=1;m<=12;m++)zy[y][m]+=o[y][m];});});
+  let h='<div class="dnote">'+(DS.view==='all'?'전체 ':'최근 ')+ys.length+'개년 · '+(CY.extra.length&&F.m!=='rc'?CY.extra[CY.extra.length-1]+'~'+CY.extra[0]+'년은 일보DB 매출 · ':'')+(F.m==='rc'?'경상이익(2022년~)':b.label)+' · 단위 억원 · 구분 채널 · 진행연도의 분기계·연간은 가용월 누계(이탤릭=일부 월) · 전년비는 1~'+N+'월 동기누계</div>';
+  const totT={};ys.forEach(y=>{totT[y]=r.tot[y];});
+  h+=block('전사',totT)+block('직영(=B2C+B2B)',zy);
+  CH_ORDER.forEach(k=>{h+=block(c.dims.ch[k],get(k));});
+  body.innerHTML=h;
+}
+
+/* ---------- side + footer ---------- */
+function renderSide(){
+  fillSel($('#selY'),YEARS[0],LASTY,S.year,v=>v+'년');
+  const am=availM(S.year);if(S.month>am)S.month=am;
+  fillSel($('#selM'),1,am,S.month,v=>v+'월');
+  document.querySelectorAll('#segMode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.set==='mode:'+S.mode));
+  document.querySelectorAll('#segBasis button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.set==='basis:'+S.basis));
+  $('#basisHint').textContent=B().hint;
+}
+function renderFoot(){
+  $('#foot').innerHTML='※ v1.1 · 일보DB 2019.01~, 결산DB 2022.01~'+LASTY+'.'+(LASTM<10?'0'+LASTM:LASTM)+' 집계(2022년 이전은 일보DB 매출만 제공). 매출(환산)은 구독을 고객판매가로, 매출(결산)은 수수료 수취분만 반영하며 2025년부터 차이가 발생합니다. 손익은 결산DB 경상이익(영업외 손익 포함), 이익율 = 매출이익 ÷ 매출(결산)(매출 기준 선택과 무관)이며 일보 기준에는 제공되지 않습니다. 일시불 이익율 = (매출이익 − 구독 수수료) ÷ (매출(결산) − 구독 수수료), 구독 수수료는 결산DB 구독 열이며 기준(환산/결산)과 무관하게 같은 값입니다. 직영 = B2C + B2B. 그룹은 채널이 B2B이면 B2B, 그 외는 품목군(PL/PS/PI/PM/기타)이며, 채널·그룹은 일보DB 지점코드/품목 룰, 결산DB 직영구분/신그룹 기준이라 경계가 조금 다를 수 있습니다. 일시불/구독은 참고 수치입니다(결산=결산DB 구독 열, 환산=구독 열+환산−결산 차이, 일보=매입구분 E). 2024년 이하는 환산 데이터가 없어 구독이 작게 잡힐 수 있습니다. 수치는 원본 대조 전입니다.';
+}
+function redrawTrend(){if(S.tview==='year')drawYear();else drawMonthly();}
+function fitTrend(){ // PC 2단: 좌측 추이 카드 높이를 우측 구성비 카드에 맞춤
+  TREND_X=0;const tr=$('#trend'),cp=$('#comp');
+  if(!tr||!cp||(needsPL()&&!hasPL()))return;
+  redrawTrend();
+  if(Math.abs(tr.getBoundingClientRect().top-cp.getBoundingClientRect().top)>4)return;
+  const natOf=el=>{const r=el.getBoundingClientRect();let n=0;Array.prototype.forEach.call(el.children,k=>{if(k.offsetHeight>0)n=Math.max(n,k.getBoundingClientRect().bottom);});return (n-r.top)+parseFloat(getComputedStyle(el).paddingBottom||0);};
+  const trNat=natOf(tr);
+  if(S.metric==='gp'&&S.comp==='vend'){COMP_N=9;renderComp();if(natOf(cp)>COMP_REF){COMP_N=8;renderComp();}}
+  const r0=tr.getBoundingClientRect();
+  const slack=r0.height-trNat;
+  if(slack>6){TREND_X=Math.min(Math.floor(slack),200);redrawTrend();}
+}
+function renderAll(){if(S.vend!=null&&B().cube.dims.vend.indexOf(S.vend)<0)S.vend=null;renderSide();renderTop();renderKpis();renderGroups();renderTrend();COMP_N=8;renderComp();fitTrend();renderTable();renderFoot();if($('#detail').classList.contains('on'))renderDetail();}
+
+/* ---------- events ---------- */
+document.addEventListener('click',function(e){
+  const so=e.target.closest('[data-sort]');
+  if(so){const k=so.getAttribute('data-sort');if(S.sort.key===k)S.sort.dir=-S.sort.dir;else S.sort={key:k,dir:(k==='name'||k==='md'||k==='grp')?1:-1};renderTable();return;}
+  const yr=e.target.closest('[data-yr]');if(yr){S.year=+yr.getAttribute('data-yr');renderAll();return;}
+  const t=e.target.closest('[data-set]');if(!t)return;
+  const p=t.getAttribute('data-set').split(':'),k=p[0],v=p[1];
+  if(k==='metric')S.metric=v;
+  else if(k==='ch'){if(v==='all')S.chs.clear();else{const i=+v;if(S.chs.has(i))S.chs.delete(i);else S.chs.add(i);if(S.chs.size===CHN.length)S.chs.clear();}}
+  else if(k==='grp'){if(v==='all')S.grp=null;else{const i=+v;S.grp=(S.grp===i)?null:i;}}
+  else if(k==='vend'){if(v==='all')S.vend=null;else{const nm=B().cube.dims.vend[+v];S.vend=(S.vend===nm)?null:nm;}}
+  else if(k==='mspan')S.mspan=+v;
+  else if(k==='mode'||k==='basis'||k==='span'||k==='comp'||k==='tab'||k==='tview'||k==='opb')S[k]=v;
+  else if(k==='more')S.more=v==='1';
+  if(k==='tab')S.more=false;
+  renderAll();
+});
+$('#selY').addEventListener('change',e=>{S.year=+e.target.value;renderAll();});
+$('#selM').addEventListener('change',e=>{S.month=+e.target.value;renderAll();});
+function sideOpen(o){$('#side').classList.toggle('open',o);$('#backdrop').classList.toggle('on',o);}
+$('#openSide').addEventListener('click',()=>sideOpen(true));
+$('#closeSide').addEventListener('click',()=>sideOpen(false));
+$('#backdrop').addEventListener('click',()=>sideOpen(false));
+function detOpen(o){if(o){DS.y=S.year;DS.m1=1;DS.m2=S.month;sideOpen(false);}$('#detail').classList.toggle('on',o);if(o)renderDetail();}
+$('#openDetail').addEventListener('click',()=>detOpen(true));
+$('#openDetail2').addEventListener('click',()=>detOpen(true));
+$('#closeDetail').addEventListener('click',()=>detOpen(false));
+$('#detail').addEventListener('click',e=>{if(e.target.id==='detail')detOpen(false);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){detOpen(false);sideOpen(false);}});
+$('#dY').addEventListener('change',e=>{DS.y=+e.target.value;renderDetail();});
+$('#dM1').addEventListener('change',e=>{DS.m1=+e.target.value;if(DS.m1>DS.m2)DS.m2=DS.m1;renderDetail();});
+$('#dM2').addEventListener('change',e=>{DS.m2=+e.target.value;if(DS.m2<DS.m1)DS.m1=DS.m2;renderDetail();});
+$('#dAxis').addEventListener('click',e=>{const b=e.target.closest('[data-ax]');if(b){DS.ax=b.dataset.ax;DS.path=[];DS.q='';$('#dQ').value='';renderDetail();$('#dBody').scrollTop=0;}});
+$('#dCh').addEventListener('change',e=>{const p=CHP().find(x=>x[0]===e.target.value);if(p){S.chs=new Set(p[2]);renderAll();}});
+$('#dQ').addEventListener('input',e=>{DS.q=e.target.value;renderDetail();});
+$('#dBasis').addEventListener('change',e=>{S.basis=e.target.value;renderAll();});
+$('#fMet').addEventListener('change',e=>{DS.f5.m=e.target.value;renderDetail();});
+$('#detail').addEventListener('click',e=>{
+  const v=e.target.closest('[data-v]');if(v){DS.view=v.dataset.v;renderDetail();$('#dBody').scrollTop=0;return;}
+  const fv=e.target.closest('[data-fv]');if(fv){DS.f5.v=fv.dataset.fv;renderDetail();$('#dBody').scrollTop=0;return;}
+  const dr=e.target.closest('[data-drill]');
+  if(dr){const c=B().cube,sq=SEQ[DS.ax]||SEQ.grp,ax=sq[Math.min(DS.path.length,sq.length-1)];if(DS.path.length<sq.length){DS.path.push({ax:ax,name:c.dims[ax][+dr.dataset.drill]});DS.q='';$('#dQ').value='';renderDetail();$('#dBody').scrollTop=0;}return;}
+  const cr=e.target.closest('[data-crumb]');if(cr){DS.path=DS.path.slice(0,+cr.dataset.crumb);renderDetail();$('#dBody').scrollTop=0;return;}
+});
+
+const tip=$('#tip');
+function showTip(e){const t=e.target.closest&&e.target.closest('[data-tip]');if(!t){tip.classList.remove('on');return;}
+  tip.innerHTML=t.getAttribute('data-tip');tip.classList.add('on');
+  const x=Math.max(8,Math.min(e.clientX+14,window.innerWidth-tip.offsetWidth-8)),y=Math.max(e.clientY-tip.offsetHeight-12,8);
+  tip.style.left=x+'px';tip.style.top=y+'px';}
+document.addEventListener('pointermove',showTip);
+document.addEventListener('pointerdown',showTip);
+let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(!(needsPL()&&!hasPL())){fitTrend();renderRef();}},120);});
+
+renderAll();
+})();
+</script>
+</body>
+</html>
