@@ -68,6 +68,7 @@ main{display:flex;flex-direction:column;gap:14px;min-width:0}
 .p-head h2{font-size:15px;font-weight:800;letter-spacing:-.01em}
 .p-head .note{font-size:11.5px;color:var(--ink3);margin-top:2px}
 .ctrls{display:flex;gap:8px;flex-wrap:wrap}
+#trend .p-head>div:first-child{flex:1 1 170px;min-width:0}#trend .ctrls{flex:0 0 auto}
 .seg{display:inline-flex;background:#eef2f0;border-radius:11px;padding:3px;gap:2px}
 .seg button{padding:6px 12px;border-radius:9px;font-size:12.5px;font-weight:700;color:var(--ink2)}
 .seg button[aria-pressed=true]{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(20,40,60,.15)}
@@ -265,7 +266,7 @@ main{display:flex;flex-direction:column;gap:14px;min-width:0}
 <main>
   <div class="top">
     <div>
-      <h1>판매·손익 현황<span class="sample">v1.1</span></h1>
+      <h1>판매·손익 현황<span class="sample">v1.2</span></h1>
     </div>
     <div class="top-actions">
       <button class="btn only-m" id="openSide" type="button">조건</button>
@@ -368,7 +369,7 @@ const PCT=(v,d)=>(v*100).toFixed(d==null?1:d)+'%';
 const availM=y=>y===LASTY?LASTM:12;
 let TREND_X=0,COMP_N=8;const COMP_REF=600;
 const S={metric:'sales',year:LASTY,month:LASTM,mode:'ytd',basis:'h',chs:new Set(DEF_CH),grp:null,
-        tview:'year',opb:'k',span:'sync',mspan:3,comp:'vend',vend:null,tab:'md',more:false,sort:{key:'s',dir:-1}};
+        tview:'year',opb:'k',sbx:'all',span:'sync',mspan:3,comp:'vend',vend:null,tab:'md',more:false,sort:{key:'s',dir:-1}};
 const DS={y:LASTY,m1:1,m2:LASTM,ax:'grp',q:'',view:'look',path:[],f5:{v:'cur',m:'sales'}};
 const B=()=>BASIS[S.basis];
 const hasPL=()=>B().pl;
@@ -402,11 +403,11 @@ const hasYear=y=>YEARS.indexOf(y)>=0;
 /* 월별 일괄 집계 (한 번 순회) */
 function monthlyPass(years,f,bb){
   const b=bb||B(),c=b.cube,R=c.rows,N=R.y.length,A=R[b.amt],Q=R[b.qty],out={};
-  years.forEach(y=>{out[y]={q:new Array(13).fill(0),s:new Array(13).fill(0),gp:new Array(13).fill(0),rc:new Array(13).fill(0),sk:new Array(13).fill(0),fk:new Array(13).fill(0),inv:new Array(13).fill(0)};});
+  years.forEach(y=>{out[y]={q:new Array(13).fill(0),s:new Array(13).fill(0),gp:new Array(13).fill(0),rc:new Array(13).fill(0),sk:new Array(13).fill(0),fk:new Array(13).fill(0),sb:new Array(13).fill(0),inv:new Array(13).fill(0)};});
   const chm=f.chm,g=f.grp,fm=f.md==null?null:f.md,fi=f.item==null?null:f.item,fv=f.vend==null?null:f.vend;
   for(let i=0;i<N;i++){const o=out[R.y[i]];if(!o)continue;if(chm&&!chm[R.ch[i]])continue;if(g!=null&&R.grp[i]!==g)continue;
     if(fm!=null&&R.md[i]!==fm)continue;if(fi!=null&&R.item[i]!==fi)continue;if(fv!=null&&R.vend[i]!==fv)continue;
-    const m=R.m[i];o.s[m]+=A[i];o.q[m]+=Q[i];if(b.pl){o.gp[m]+=R.gp[i];o.rc[m]+=R.rc[i];o.sk[m]+=R.s_k[i];o.fk[m]+=R.sb_k[i];o.inv[m]+=R.inv[i];}}
+    const m=R.m[i];o.s[m]+=A[i];o.q[m]+=Q[i];o.sb[m]+=R[b.sub][i];if(b.pl){o.gp[m]+=R.gp[i];o.rc[m]+=R.rc[i];o.sk[m]+=R.s_k[i];o.fk[m]+=R.sb_k[i];o.inv[m]+=R.inv[i];}}
   return out;
 }
 function monthlyGroups(y,f){
@@ -444,7 +445,7 @@ function dm(a,b){ if(a==null||b==null||!isFinite(a)||!isFinite(b))return NA; con
 function perLabel(){const m=S.month,mm=m<10?'0'+m:m;
   return S.mode==='ytd'?(S.year+'.01'+(m===1?'':'~'+mm)+' 누계'):(S.year+'.'+mm+' 당월');}
 function chName(){if(!S.chs.size)return '전체';const a=CH_ORDER.filter(i=>S.chs.has(i));if(a.length===2&&S.chs.has(0)&&S.chs.has(2))return '직영(=B2C+B2B)';return a.map(i=>CHN[i]).join('+');}
-const metricName=()=>({sales:'매출',gp:'손익(경상이익)',opm:'이익율(매출이익)',inv:'기말 재고',grp:'그룹별 매출'}[S.metric]);
+const metricName=()=>({sales:'매출',gp:'손익(경상이익)',opm:'이익율',inv:'기말 재고',grp:'그룹별 매출'}[S.metric]);
 const needsPL=()=>S.metric==='gp'||S.metric==='opm'||S.metric==='inv';
 
 /* ---------- header / chips ---------- */
@@ -528,12 +529,12 @@ function renderTrend(){
   const box=$('#trend');
   const yr=S.tview==='year',sync=S.span==='sync';
   const spanTxt=yr?(S.metric==='inv'?(sync?'각 연도 '+S.month+'월 말 잔액':'연말 잔액 (진행연도는 최근월 말)'):(sync?(S.mode==='ytd'?'각 연도 '+(S.month===1?'1월':'1~'+S.month+'월')+' 누계':'각 연도 '+S.month+'월'):'연간 (진행연도는 가용월까지)')):
-    (S.metric==='grp'?LASTY+'년 그룹별 월별 추이':'최근 '+S.mspan+'개년 월별 추이 ('+LASTY+'년까지)'+(S.metric==='opm'&&S.opb==='L'?' · 일시불 이익율(구독 수수료 제외)':''));
+    (S.metric==='grp'?LASTY+'년 그룹별 월별 추이':'최근 '+S.mspan+'개년 월별 추이 ('+LASTY+'년까지)'+(S.metric==='opm'&&S.opb==='L'?' · 일시불 이익율(구독 수수료 제외)':'')+(S.metric==='sales'&&S.sbx==='L'?' · 일시불(구독 제외)':''));
   const title=S.metric==='inv'?(yr?'기말 재고 추이':'월별 기말 재고'):metricName()+(yr?' 연도별 추이':' 월별 추이');
   let ctr='<div class="seg" role="group" aria-label="보기 단위"><button type="button" data-set="tview:year" aria-pressed="'+yr+'">연도별</button><button type="button" data-set="tview:month" aria-pressed="'+!yr+'">월별</button></div>';
   if(yr)ctr+='<div class="seg" role="group" aria-label="비교 기간"><button type="button" data-set="span:sync" aria-pressed="'+sync+'">동기</button><button type="button" data-set="span:full" aria-pressed="'+!sync+'">연간</button></div>';
-  else if(S.metric==='opm')ctr+='<div class="seg" role="group" aria-label="이익율 기준"><button type="button" data-set="opb:k" aria-pressed="'+(S.opb==='k')+'">이익율(결산)</button><button type="button" data-set="opb:L" aria-pressed="'+(S.opb==='L')+'">일시불</button></div><div class="seg" role="group" aria-label="비교 연수"><button type="button" data-set="mspan:3" aria-pressed="'+(S.mspan===3)+'">3년</button><button type="button" data-set="mspan:5" aria-pressed="'+(S.mspan===5)+'">5년</button></div>';
-  else if(S.metric!=='grp')ctr+='<div class="seg" role="group" aria-label="비교 연수"><button type="button" data-set="mspan:3" aria-pressed="'+(S.mspan===3)+'">3년</button><button type="button" data-set="mspan:5" aria-pressed="'+(S.mspan===5)+'">5년</button></div>';
+  else if(S.metric==='opm')ctr+='<div class="seg" role="group" aria-label="이익율 기준"><button type="button" data-set="opb:k" aria-pressed="'+(S.opb==='k')+'">결산</button><button type="button" data-set="opb:L" aria-pressed="'+(S.opb==='L')+'">일시불</button></div><div class="seg" role="group" aria-label="비교 연수"><button type="button" data-set="mspan:3" aria-pressed="'+(S.mspan===3)+'">3년</button><button type="button" data-set="mspan:5" aria-pressed="'+(S.mspan===5)+'">5년</button></div>';
+  else if(S.metric!=='grp')ctr+=(S.metric==='sales'?'<div class="seg" role="group" aria-label="매출 구분"><button type="button" data-set="sbx:all" aria-pressed="'+(S.sbx==='all')+'">전체</button><button type="button" data-set="sbx:L" aria-pressed="'+(S.sbx==='L')+'">일시불</button></div>':'')+'<div class="seg" role="group" aria-label="비교 연수"><button type="button" data-set="mspan:3" aria-pressed="'+(S.mspan===3)+'">3년</button><button type="button" data-set="mspan:5" aria-pressed="'+(S.mspan===5)+'">5년</button></div>';
   box.innerHTML='<div class="p-head"><div><h2>'+title+'</h2><div class="note">'+spanTxt+' · '+B().short+' · 채널 '+chName()+(S.grp!=null&&S.metric!=='grp'?' · '+GR[S.grp]:'')+(S.vend!=null?' · 거래선 '+S.vend:'')+'</div></div><div class="ctrls">'+ctr+'</div></div>'+
     '<div class="chart-box" id="tbox"></div><div class="legend" id="tleg"></div><div id="substrip"></div><div id="ref"></div>';
   if(needsPL()&&!hasPL()){$('#tbox').innerHTML=noPL();return;}
@@ -568,7 +569,7 @@ function renderRef(){
     const mp=monthlyPass(ys,f);
     rows=ys.map((y,k)=>({label:compact?'’'+String(y).slice(2):String(y),color:SERC[Math.min(k,SERC.length-1)],bold:k===0,v:m=>{
       if(m>availM(y))return null;const o=mp[y];
-      if(kind==='sales')return o.s[m];if(kind==='gp')return o.rc[m];if(kind==='inv')return o.inv[m];
+      if(kind==='sales')return S.sbx==='L'?o.s[m]-o.sb[m]:o.s[m];if(kind==='gp')return o.rc[m];if(kind==='inv')return o.inv[m];
       return mgAt(o,m);}}));
   }
   let h='<div class="refbox mini"><div class="twrap"><table class="rtable h'+(kind==='gp'?' dec':'')+'"><thead><tr><th>'+(kind==='opm'?'%':'억')+'</th>';
@@ -672,7 +673,7 @@ function drawMonthly(){
     const mp=monthlyPass(ys,f);
     series=ys.map((y,k)=>{const o=mp[y],n=availM(y),vals=[];
       for(let m=1;m<=n;m++){let v;
-        if(S.metric==='sales')v=o.s[m];else if(S.metric==='gp')v=o.rc[m];else if(S.metric==='inv')v=o.inv[m];
+        if(S.metric==='sales')v=S.sbx==='L'?o.s[m]-o.sb[m]:o.s[m];else if(S.metric==='gp')v=o.rc[m];else if(S.metric==='inv')v=o.inv[m];
         else v=mgAt(o,m);
         vals.push(v);}
       return {name:String(y),color:SERC[Math.min(k,SERC.length-1)],w:k===0?3.2:2,dash:k>=2?(k===2?'6 4':(k===3?'2 4':'10 4 2 4')):'',vals:vals};});
@@ -1024,7 +1025,7 @@ function renderSide(){
   $('#basisHint').textContent=B().hint;
 }
 function renderFoot(){
-  $('#foot').innerHTML='※ v1.1 · 일보DB 2019.01~, 결산DB 2022.01~'+LASTY+'.'+(LASTM<10?'0'+LASTM:LASTM)+' 집계(2022년 이전은 일보DB 매출만 제공). 매출(환산)은 구독을 고객판매가로, 매출(결산)은 수수료 수취분만 반영하며 2025년부터 차이가 발생합니다. 손익은 결산DB 경상이익(영업외 손익 포함), 이익율 = 매출이익 ÷ 매출(결산)(매출 기준 선택과 무관)이며 일보 기준에는 제공되지 않습니다. 일시불 이익율 = (매출이익 − 구독 수수료) ÷ (매출(결산) − 구독 수수료), 구독 수수료는 결산DB 구독 열이며 기준(환산/결산)과 무관하게 같은 값입니다. 직영 = B2C + B2B. 그룹은 채널이 B2B이면 B2B, 그 외는 품목군(PL/PS/PI/PM/기타)이며, 채널·그룹은 일보DB 지점코드/품목 룰, 결산DB 직영구분/신그룹 기준이라 경계가 조금 다를 수 있습니다. 일시불/구독은 참고 수치입니다(결산=결산DB 구독 열, 환산=구독 열+환산−결산 차이, 일보=매입구분 E). 2024년 이하는 환산 데이터가 없어 구독이 작게 잡힐 수 있습니다. 수치는 원본 대조 전입니다.';
+  $('#foot').innerHTML='※ v1.2 · 일보DB 2019.01~, 결산DB 2022.01~'+LASTY+'.'+(LASTM<10?'0'+LASTM:LASTM)+' 집계(2022년 이전은 일보DB 매출만 제공). 매출(환산)은 구독을 고객판매가로, 매출(결산)은 수수료 수취분만 반영하며 2025년부터 차이가 발생합니다. 손익은 결산DB 경상이익(영업외 손익 포함), 이익율 = 매출이익 ÷ 매출(결산)(매출 기준 선택과 무관)이며 일보 기준에는 제공되지 않습니다. 일시불 이익율 = (매출이익 − 구독 수수료) ÷ (매출(결산) − 구독 수수료), 구독 수수료는 결산DB 구독 열이며 기준(환산/결산)과 무관하게 같은 값입니다. 직영 = B2C + B2B. 그룹은 채널이 B2B이면 B2B, 그 외는 품목군(PL/PS/PI/PM/기타)이며, 채널·그룹은 일보DB 지점코드/품목 룰, 결산DB 직영구분/신그룹 기준이라 경계가 조금 다를 수 있습니다. 일시불/구독은 참고 수치입니다(결산=결산DB 구독 열, 환산=구독 열+환산−결산 차이, 일보=매입구분 E). 2024년 이하는 환산 데이터가 없어 구독이 작게 잡힐 수 있습니다. 수치는 원본 대조 전입니다.';
 }
 function redrawTrend(){if(S.tview==='year')drawYear();else drawMonthly();}
 function fitTrend(){ // PC 2단: 좌측 추이 카드 높이를 우측 구성비 카드에 맞춤
@@ -1053,7 +1054,7 @@ document.addEventListener('click',function(e){
   else if(k==='grp'){if(v==='all')S.grp=null;else{const i=+v;S.grp=(S.grp===i)?null:i;}}
   else if(k==='vend'){if(v==='all')S.vend=null;else{const nm=B().cube.dims.vend[+v];S.vend=(S.vend===nm)?null:nm;}}
   else if(k==='mspan')S.mspan=+v;
-  else if(k==='mode'||k==='basis'||k==='span'||k==='comp'||k==='tab'||k==='tview'||k==='opb')S[k]=v;
+  else if(k==='mode'||k==='basis'||k==='span'||k==='comp'||k==='tab'||k==='tview'||k==='opb'||k==='sbx')S[k]=v;
   else if(k==='more')S.more=v==='1';
   if(k==='tab')S.more=false;
   renderAll();
