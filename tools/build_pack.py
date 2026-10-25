@@ -1,23 +1,23 @@
-"""사용법: python3 build_pack.py <template.html> <cube.json> <cube_i.json> <비밀번호> <출력 index.html>
+"""사용법: python3 build_pack.py <template.html> <cube.json> <cube_i.json> <cube_s.json> <비밀번호> <출력 index.html>
 데이터(결산·일보 큐브)를 비밀번호로 암호화(PBKDF2-SHA256 → AES-256-GCM, 압축 후)하여 index.html 한 파일로 조립합니다."""
 import sys, os, json, zlib, base64
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
-tpl,cj,ci,pw,out=sys.argv[1:6]
+tpl,cj,ci,cs,pw,out=sys.argv[1:7]
 IT=250000
 t=open(tpl,encoding='utf-8').read()
-J=json.load(open(cj,encoding='utf-8')); I=json.load(open(ci,encoding='utf-8'))
-raw=json.dumps({'J':J,'I':I},ensure_ascii=False,separators=(',',':')).encode('utf-8')
+J=json.load(open(cj,encoding='utf-8')); I=json.load(open(ci,encoding='utf-8')); SS=json.load(open(cs,encoding='utf-8'))
+raw=json.dumps({'J':J,'I':I,'S':SS},ensure_ascii=False,separators=(',',':')).encode('utf-8')
 co=zlib.compressobj(9,zlib.DEFLATED,-15); comp=co.compress(raw)+co.flush()
 salt=os.urandom(16); iv=os.urandom(12)
 key=PBKDF2HMAC(algorithm=hashes.SHA256(),length=32,salt=salt,iterations=IT).derive(pw.encode('utf-8'))
 ct=AESGCM(key).encrypt(iv,comp,None)
 blob=base64.b64encode(salt+iv+ct).decode()
 # 앱 스크립트를 부팅 함수로 변환
-a="const DATA_J = __DATA_J__;\nconst DATA_I = __DATA_I__;\n(function(){"
+a="const DATA_J = __DATA_J__;\nconst DATA_I = __DATA_I__;\nconst DATA_S = __DATA_S__;\n(function(){"
 assert a in t and t.count('\n})();\n</script>')==1
-t=t.replace(a,"window.__boot=function(DATA_J,DATA_I){\n(function(){").replace('\n})();\n</script>','\n})();\n};\n</script>')
+t=t.replace(a,"window.__boot=function(DATA_J,DATA_I,DATA_S){\n(function(){").replace('\n})();\n</script>','\n})();\n};\n</script>')
 icons='''<link rel="icon" type="image/x-icon" href="./icons/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="./icons/favicon-16x16.png">
@@ -59,7 +59,7 @@ async function go(pw,silent){
   try{
     var d=await unlock(pw);
     try{sessionStorage.setItem('dash_ok',pw);}catch(e){}
-    $('gate').remove();window.__boot(d.J,d.I);
+    $('gate').remove();window.__boot(d.J,d.I,d.S);
   }catch(e){
     try{sessionStorage.removeItem('dash_ok');}catch(x){}
     btn.disabled=false;btn.textContent='확인';

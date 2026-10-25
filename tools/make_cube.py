@@ -1,9 +1,16 @@
 import sys, json
 import pandas as pd, numpy as np
-src, out = sys.argv[1], sys.argv[2]
-df = pd.read_excel(src)
-df.columns = [str(c).replace('\n','') for c in df.columns]
-df = df[df['년'].notna() & (df['년'].astype(str)!='년')].copy()
+srcs, out = sys.argv[1].split(','), sys.argv[2]   # 결산DB 파일 여러 개(쉼표 구분) 통합 가능
+_p=[]
+for src in srcs:
+    _d = pd.read_excel(src, dtype=object)
+    _d.columns = [str(c).replace('\n','') for c in _d.columns]
+    _p.append(_d)
+df = pd.concat(_p, ignore_index=True)
+df = df[df['직영구분'].notna() & (df['년월'].astype(str)!='년월')].copy()   # 빈 행·중복 헤더 행 제거
+df['년'] = pd.to_numeric(df['년월'], errors='coerce')//100; df['월'] = pd.to_numeric(df['년월'], errors='coerce')%100
+df = df[df['년'].notna()].copy()
+print('결산 행',len(df))
 num = ['수량','매출','환산매출','매출이익','영업이익','경상이익','재고계','재고수량계']
 for c in num: df[c] = pd.to_numeric(df[c], errors='coerce').fillna(0.0)
 df['y'] = df['년'].astype(int); df['m'] = df['월'].astype(int)

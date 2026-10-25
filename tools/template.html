@@ -190,6 +190,7 @@ main{display:flex;flex-direction:column;gap:14px;min-width:0}
 .rtable tr.dl td{font-size:11px;color:var(--ink2);background:#fff}
 .rtable td.tot,.rtable th.tot{border-left:1px solid var(--line)}
 .rtable td.tot{font-weight:800}
+.rtable td.ytd,.rtable th.ytd{border-left:1px dotted var(--line)}.rtable td.ytd{font-weight:700;background:#fafcfb}.rtable.sn td.ytd{font-weight:400}.rtable tr.cur td.ytd{background:#f3f7f5}
 .rtable td.qs{background:#f6f8f7;font-weight:700}.rtable th.qs{background:#f6f8f7;color:var(--ink2)}
 .rtable td.qs.pt{font-style:italic;color:var(--ink2)}
 .rtable td.na,.rtable .na{color:#b0b8c0}
@@ -220,6 +221,13 @@ main{display:flex;flex-direction:column;gap:14px;min-width:0}
 .mrow.v .mtrack i{background:#e29a3b}
 .vsep{align-self:stretch;width:4px;border-left:1px solid #aab8b1;border-right:1px solid #aab8b1;margin:2px 6px}
 @media(max-width:560px){.vsep{display:none!important}}
+.blk.off{border:2px solid #34405a}.blk.off .blk-h{background:#34405a;border-radius:10px;padding:8px 10px;margin:-2px -2px 8px}.blk.off .blk-h b,.blk.off .blk-h span{color:#fff}.blk.off .blk-h b{font-size:15px}.blk.mute{opacity:.85}.blk.mute .blk-h b{color:var(--ink2)}
+#dView button[data-v="br"]{margin-left:8px;border-left:3px double #8a98a2;border-radius:0 9px 9px 0;padding-left:12px}
+@media(max-width:480px){#dView button[data-v="br"]{margin-left:5px;padding-left:9px}}
+.dbr{display:contents}.dbr input{padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;font-size:14px;flex:1 1 170px;min-width:150px}
+@media(max-width:480px){#dView .xl{display:none}#dView button{padding:6px 9px}}
+.brlist{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}.brlist button{padding:8px 12px;border-radius:12px;background:#fff;border:1px solid var(--line);font-size:13px;font-weight:700;text-align:left}.brlist button small{display:block;font-size:11px;color:var(--ink3);font-weight:600}
+.brchip{display:inline-flex;gap:8px;align-items:center;padding:8px 12px;border-radius:12px;background:#34405a;color:#fff;font-weight:800;font-size:13px;margin:6px 0}.brchip small{color:#c9d5da;font-weight:600}
 .dfive{display:inline-flex;flex-wrap:wrap;gap:8px;align-items:center}
 .dfive select{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;font-size:13px}
 
@@ -266,7 +274,7 @@ main{display:flex;flex-direction:column;gap:14px;min-width:0}
 <main>
   <div class="top">
     <div>
-      <h1>판매·손익 현황<span class="sample">v1.2</span></h1>
+      <h1>판매·손익 현황<span class="sample">v1.9</span></h1>
     </div>
     <div class="top-actions">
       <button class="btn only-m" id="openSide" type="button">조건</button>
@@ -306,7 +314,7 @@ main{display:flex;flex-direction:column;gap:14px;min-width:0}
     <div class="hint" id="basisHint"></div>
   </div>
   <button class="btn main" id="openDetail2" type="button">상세보기 (연·월 조회)</button>
-  <div class="hint">금액 단위 백만원 · 재고는 기말(선택월 말) 잔액<br>일보DB 2019.01~ · 결산DB 2022.01~</div>
+  <div class="hint">금액 단위 백만원 · 재고는 기말(선택월 말) 잔액<br>일보DB 2019.01~ · 결산DB 2019.01~</div>
 </aside>
 </div>
 <div class="backdrop" id="backdrop"></div>
@@ -316,15 +324,16 @@ main{display:flex;flex-direction:column;gap:14px;min-width:0}
   <div class="dpanel">
     <div class="dhead"><h2>상세 조회</h2><button class="btn" id="closeDetail" type="button">닫기</button></div>
     <div class="dsub">
-      <div class="seg" id="dView" role="group" aria-label="보기 선택"><button type="button" data-v="look">조회</button><button type="button" data-v="five">5년 월별</button><button type="button" data-v="all">전체 월별</button></div>
+      <div class="seg" id="dView" role="group" aria-label="보기 선택"><button type="button" data-v="look">조회</button><button type="button" data-v="five">5년<span class="xl"> 월별</span></button><button type="button" data-v="all">전체<span class="xl"> 월별</span></button><button type="button" data-v="br">지점<span class="xl">별</span></button><button type="button" data-v="sn">점포<span class="xl">수</span></button></div>
       <select id="dBasis" aria-label="매출 기준"></select>
       <span class="vsep" id="dSep" style="display:none"></span>
       <div class="dfive" id="dtFive" style="display:none">
         <div class="seg" id="fView" role="group" aria-label="5년 월별 보기"><button type="button" data-fv="cur">현재 기준</button><button type="button" data-fv="ch">채널별 매출</button></div>
         <span id="dChSlotF"></span>
-        <select id="fMet" aria-label="지표"><option value="sales">매출</option><option value="rc">경상이익</option></select>
+        <select id="fMet" aria-label="지표"><option value="sales">매출</option><option value="lump">일시불</option><option value="sub">구독</option><option value="rc">경상이익</option></select>
       </div>
       <select id="dCh" aria-label="채널"></select>
+      <div class="dbr" id="dtBr" style="display:none"><div class="seg" id="bK" role="group" aria-label="일보 기준"><button type="button" data-bk="a2">매출</button><button type="button" data-bk="a1">판매</button></div><input id="bQ" type="search" inputmode="search" autocomplete="off" placeholder="지점명 또는 지점코드 검색" aria-label="지점 검색"></div>
     </div>
     <div class="dtools" id="dtLook">
       <select id="dY" aria-label="년도"></select>
@@ -344,9 +353,10 @@ main{display:flex;flex-direction:column;gap:14px;min-width:0}
 <script>
 const DATA_J = __DATA_J__;
 const DATA_I = __DATA_I__;
+const DATA_S = __DATA_S__;
 (function(){
 "use strict";
-const DJ=DATA_J, DI=DATA_I;
+const DJ=DATA_J, DI=DATA_I, DS_=DATA_S;
 [DJ,DI].forEach(c=>{c.dims.ch=c.dims.ch.map(x=>x==='직영'?'B2C':x);});
 const GR=DJ.dims.grp, CHN=DJ.dims.ch, YEARS=DJ.years, LASTY=DJ.lastY, LASTM=DJ.lastM;
 const CH_ORDER=[0,2,1,3]; // B2C(구 직영), B2B, 온라인, 특수
@@ -370,7 +380,7 @@ const availM=y=>y===LASTY?LASTM:12;
 let TREND_X=0,COMP_N=8;const COMP_REF=600;
 const S={metric:'sales',year:LASTY,month:LASTM,mode:'ytd',basis:'h',chs:new Set(DEF_CH),grp:null,
         tview:'year',opb:'k',sbx:'all',span:'sync',mspan:3,comp:'vend',vend:null,tab:'md',more:false,sort:{key:'s',dir:-1}};
-const DS={y:LASTY,m1:1,m2:LASTM,ax:'grp',q:'',view:'look',path:[],f5:{v:'cur',m:'sales'}};
+const DS={y:LASTY,m1:1,m2:LASTM,ax:'grp',q:'',view:'look',path:[],f5:{v:'cur',m:'sales'},br:{code:null,q:'',k:'a2'}};
 const B=()=>BASIS[S.basis];
 const hasPL=()=>B().pl;
 
@@ -870,10 +880,14 @@ function renderDetail(){
   document.querySelectorAll('#dView button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===DS.view));
   $('#dBasis').innerHTML=Object.keys(BASIS).map(k=>'<option value="'+k+'"'+(k===S.basis?' selected':'')+'>'+BASIS[k].label+'</option>').join('');
   renderChSel();
-  (DS.view!=='look'?$('#dChSlotF'):$('#dChSlotL')).appendChild($('#dCh'));
-  $('#dCh').style.display=(DS.view!=='look'&&DS.f5.v==='ch')?'none':'';
+  (DS.view==='five'||DS.view==='all'?$('#dChSlotF'):$('#dChSlotL')).appendChild($('#dCh'));
+  $('#dCh').style.display=(DS.view==='br'||DS.view==='sn'||(DS.view!=='look'&&DS.f5.v==='ch'))?'none':'';
+  $('#dtBr').style.display=DS.view==='br'?'':'none';$('#dBasis').style.display=(DS.view==='br'||DS.view==='sn')?'none':'';
   $('#dtLook').style.display=DS.view==='look'?'':'none';
-  $('#dtFive').style.display=DS.view!=='look'?'':'none';$('#dSep').style.display=DS.view!=='look'?'':'none';
+  $('#dtFive').style.display=(DS.view==='five'||DS.view==='all')?'':'none';$('#dSep').style.display=(DS.view==='five'||DS.view==='all')?'':'none';
+  $('#dtLook').style.display=DS.view==='look'?'':'none';
+  if(DS.view==='br'){renderBranch();return;}
+  if(DS.view==='sn'){renderStores();return;}
   if(DS.view!=='look'){renderFive();return;}
   const y=DS.y,seq=SEQ[DS.ax]||SEQ.grp,ax=seq[Math.min(DS.path.length,seq.length-1)];
   fillSel($('#dY'),YEARS[0],LASTY,y,v=>v+'년');
@@ -941,6 +955,8 @@ function renderFiveCur(){
   const price=(o,ms)=>{const qv=sum(o.q,ms);return qv>0?sum(o.s,ms)*1.1/qv:null;}; // 천원 · VAT 포함
   const MET=[
    {t:b.label,u:'백만원',pl:false,v:(o,ms)=>sum(o.s,ms),fmt:v=>M(v),ch:(a,b2)=>gr(a,b2)},
+   {t:'일시불',u:'백만원 · 구독 제외',pl:false,share:'일시불 비중',v:(o,ms)=>sum(o.s,ms)-sum(o.sb,ms),fmt:v=>M(v)},
+   {t:S.basis==='k'?'구독 (수수료)':'구독',u:'백만원 · '+(S.basis==='k'?'결산DB 구독 열':(S.basis==='h'?'환산':'매입구분 E')),pl:false,share:S.basis==='k'?'수수료 비중':'구독 비중',v:(o,ms)=>sum(o.sb,ms),fmt:v=>M(v)},
    {t:'수량',u:'대',pl:false,v:(o,ms)=>sum(o.q,ms),fmt:v=>nf.format(Math.round(v)),ch:(a,b2)=>gr(a,b2)},
    {t:'단가',u:'천원 · VAT 포함',pl:false,v:price,fmt:v=>nf.format(Math.round(v)),ch:(a,b2)=>gr(a,b2)},
    {t:'일시불 이익율',u:'% · 구독 수수료 제외',pl:true,v:(o,ms)=>{const d=sum(o.sk,ms)-sum(o.fk,ms);return d>0?(sum(o.gp,ms)-sum(o.fk,ms))/d:null;},fmt:v=>(v*100).toFixed(1),ch:(a,b2)=>pp(a,b2)},
@@ -961,7 +977,7 @@ function renderFiveCur(){
     const sy=cell(mp[Y],Y,rng(Y,1,N)),sf=ys.length>1?cell(mp[first],first,rng(first,1,N)):null;
     let t='<div class="blk"><div class="blk-h"><b>'+mt.t+' <small>'+mt.u+'</small></b><span>'+Y+'년 '+(N===1?'1월':'1~'+N+'월')+' '+(sy==null?'-':mt.fmt(sy))+'</span></div><div class="twrap"><table class="rtable"><thead><tr><th>연도</th>';
     for(let qq=0;qq<4;qq++){for(let k=1;k<=3;k++)t+='<th>'+(qq*3+k)+'월</th>';t+='<th class="qs">'+(qq+1)+'Q</th>';}
-    t+='<th class="tot">연간</th><th>전년비<small>(1~'+N+'월)</small></th></tr></thead><tbody>';
+    t+='<th class="tot">연간</th><th class="ytd">동기 계</th>'+(mt.share?'<th>'+mt.share+'<small>(1~'+N+'월)</small></th>':'<th>전년비<small>(1~'+N+'월)</small></th>')+'</tr></thead><tbody>';
     ys.forEach(y=>{
       const o=mp[y];t+='<tr'+(y===Y?' class="cur"':'')+'><td>'+y+(y===LASTY&&LASTM<12?'<small>~'+LASTM+'월</small>':'')+'</td>';
       for(let qq=0;qq<4;qq++){const qm=[];
@@ -969,11 +985,96 @@ function renderFiveCur(){
         const qv=qm.length?cell(o,y,qm):null;t+='<td class="qs'+(qm.length<3?' pt':'')+'">'+(qv==null?'–':mt.fmt(qv))+'</td>';}
       const av=cell(o,y,rng(y,1,12));
       const hasP=ys.indexOf(y-1)>=0&&isEx(y-1)===isEx(y),a1=cell(o,y,rng(y,1,N)),b1=hasP?cell(mp[y-1],y-1,rng(y-1,1,N)):null;
-      t+='<td class="tot">'+(av==null?'–':mt.fmt(av))+'</td><td>'+(hasP?mt.ch(a1,b1):'-')+'</td></tr>';
+      t+='<td class="tot">'+(av==null?'–':mt.fmt(av))+'</td><td class="ytd">'+(a1==null?'–':mt.fmt(a1))+'</td><td>'+(mt.share?(()=>{const dn=sum(o.s,rng(y,1,N));return a1==null||!dn?'–':PCT(a1/dn);})():(hasP?mt.ch(a1,b1):'-'))+'</td></tr>';
     });
     h+=t+'</tbody></table></div></div>';
   });
   if(!pl)h+='<div class="subnote">일보 기준에서는 이익율·손익·재고를 제공하지 않습니다. <button type="button" class="btn" data-set="basis:h">매출(환산)으로 보기</button></div>';
+  body.innerHTML=h;
+}
+/* ---------- 점포수 (직영채널 월 판매금액 ≥ 기준 · 구분별) ---------- */
+const STORE_TH=10000; /* 1천만원 (천원) */
+function renderStores(){
+  const body=$('#dBody'),SM=DS_.sm,TY=DS_.sty,N=LASTM;
+  const ys=[];for(let y=LASTY;y>=2019;y--){if(SM.y.indexOf(y)>=0)ys.push(y);}
+  const cnt={},amt={};ys.forEach(y=>{cnt[y]={};amt[y]={};for(let m=1;m<=12;m++){cnt[y][m]=[0,0,0,0,0,0];amt[y][m]=[0,0,0,0,0,0];}}); /* 0직영 1현대 2인샵 3모바일 4특수 5구분없음 */
+  for(let i=0;i<SM.y.length;i++){if(!cnt[SM.y[i]])continue;const t=TY[SM.st[i]];if(t===-2)continue;const k=t<0?5:t;amt[SM.y[i]][SM.m[i]][k]+=SM.a[i];if(SM.a[i]>=STORE_TH)cnt[SM.y[i]][SM.m[i]][k]++;}
+  const sumT=a=>a.reduce((x,v)=>x+v,0);
+  const GRPS=[
+    {t:'전체',f:a=>sumT(a),cls:''},
+    {t:'직영 <small>로드샵+현대+인샵</small>',f:a=>a[0]+a[1]+a[2],cls:' off'},
+    {t:'로드샵',f:a=>a[0],cls:''},{t:'현대',f:a=>a[1],cls:''},{t:'인샵',f:a=>a[2],cls:''},{t:'모바일',f:a=>a[3],cls:''},{t:'특수',f:a=>a[4],cls:''},
+    {t:'구분값 없음 <small>참고 · 전체에만 포함</small>',f:a=>a[5],cls:' mute'}];
+  const blk=g=>{
+    const val=(y,m)=>g.f(cnt[y][m]);
+    let h='<div class="blk'+g.cls+'"><div class="blk-h"><b>'+g.t+'</b><span>'+LASTY+'년 '+LASTM+'월 '+val(LASTY,LASTM)+'개</span></div><div class="twrap"><table class="rtable sn" style="min-width:760px"><thead><tr><th>연도</th>';
+    for(let m=1;m<=12;m++)h+='<th>'+m+'월</th>';
+    h+='<th class="tot">평균</th><th>증감</th><th class="ytd">판매 누계<small>(억)</small></th><th class="ytd">동기<small>(1~'+N+'월)</small></th></tr></thead><tbody>';
+    ys.forEach(y=>{
+      const am=availM(y);let tot=0;
+      h+='<tr'+(y===LASTY?' class="cur"':'')+'><td>'+y+(y===LASTY&&LASTM<12?'<small>~'+LASTM+'월</small>':'')+'</td>';
+      for(let m=1;m<=12;m++){const av=m<=am;h+='<td'+(av?'':' class="na"')+'>'+(av?val(y,m):'–')+'</td>';if(av)tot+=val(y,m);}
+      const hasP=ys.indexOf(y-1)>=0,dd=hasP?val(y,am)-val(y-1,am):null;
+      let cu=0,sy=0;for(let m=1;m<=am;m++){const v=g.f(amt[y][m]);cu+=v;if(m<=N)sy+=v;}
+      h+='<td class="tot">'+(tot/am).toFixed(1)+'</td><td>'+(dd==null?'-':dsp(dd,String(Math.abs(dd))))+'</td><td class="ytd">'+nf.format(Math.round(cu/100000))+'</td><td class="ytd">'+nf.format(Math.round(sy/100000))+'</td></tr>';
+    });
+    return h+'</tbody></table></div></div>';
+  };
+  body.innerHTML='<div class="dnote">직영 채널(B2C+B2B)의 <b>월별</b> 판매금액(일보 판매구분 1, 부가세 제외)이 1천만원 이상인 지점을 점포로 집계 · '+ys.length+'개년(2019~) · 단위 개(판매금액은 억원, 구분별 전체 점포 · 임계 미달 포함) · 증감 = 최근월 점포수의 전년 동월 대비 · 직영 = 로드샵+현대+인샵 · 창고형은 로드샵, 폐점은 폐점 전 구분 적용 · 채널·물류 등 점포가 아닌 코드는 제외</div>'+GRPS.filter(g=>g.cls!==' mute'||ys.some(y=>{for(let m=1;m<=12;m++)if(cnt[y][m][5]>0)return true;return false;})).map(blk).join('');
+}
+/* ---------- 지점별 (일보DB 기준 · 최근 5개년 월별 · 전체 + 그룹) ---------- */
+const SR=DS_.rows,SN=SR.y.length;
+const brLabel=i=>(DS_.sn[i]||'지점명 미등록');
+const brLast=(()=>{const t=new Array(DS_.sc.length).fill(0);for(let i=0;i<SN;i++)if(SR.y[i]===LASTY)t[SR.st[i]]+=SR.a2[i];return t;})();
+function brMatches(q){
+  const k=q.trim().toLowerCase(),out=[];
+  DS_.sc.forEach((c,i)=>{const nm=brLabel(i).toLowerCase();if(String(c).indexOf(k)>=0||nm.indexOf(k)>=0)out.push(i);});
+  out.sort((a,b)=>brLast[b]-brLast[a]||DS_.sc[a]-DS_.sc[b]);return out;
+}
+function brBtn(i){return '<button type="button" data-br="'+i+'">'+brLabel(i)+'<small>'+DS_.sc[i]+(DS_.st[i]?' · '+DS_.st[i]:'')+(brLast[i]?' · '+LASTY+'년 '+M(brLast[i])+'백만':' · '+LASTY+'년 매출 없음')+'</small></button>';}
+function renderBranch(){
+  const body=$('#dBody'),B_=DS.br,key=B_.k,bkey=B_.k==='a1'?'b1':'b2',lab=B_.k==='a1'?'판매(일보)':'매출(일보)';
+  document.querySelectorAll('#bK button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.bk===B_.k));
+  const note='<div class="dnote">일보DB 기준 '+lab+' · 최근 5개년 월별 · 단위 백만원 · 결산DB에는 지점이 없어 손익·재고는 제공되지 않습니다'+'</div>';
+  const q=B_.q.trim();
+  let h=note;
+  if(B_.code!=null&&!q){
+    const i=B_.code,ys=[];for(let k=0;k<5;k++){const y=LASTY-k;if(y>=DS_.rows.y.reduce((a,b)=>a<b?a:b))ys.push(y);}
+    const G=DS_.grp,N=LASTM,arr=G.map(()=>{const o={};ys.forEach(y=>{o[y]=new Array(13).fill(0);});return o;});
+    for(let r=0;r<SN;r++){if(SR.st[r]!==i)continue;const y=SR.y[r];if(!arr[0][y])continue;arr[SR.grp[r]][y][SR.m[r]]+=SR[key][r];}
+    const tot={},sub={},lump={};ys.forEach(y=>{tot[y]=new Array(13).fill(0);sub[y]=new Array(13).fill(0);lump[y]=new Array(13).fill(0);});
+    for(let r=0;r<SN;r++){if(SR.st[r]!==i)continue;const y=SR.y[r];if(sub[y])sub[y][SR.m[r]]+=SR[bkey][r];}
+    arr.forEach(o=>ys.forEach(y=>{for(let m=1;m<=12;m++)tot[y][m]+=o[y][m];}));
+    const sumN=(o,y,n)=>{let t=0;for(let m=1;m<=Math.min(n,availM(y));m++)t+=o[y][m];return t;};
+    const block=(title,o,os,shl)=>{
+      const live=ys.reduce((t,y)=>t+Math.abs(sumN(o,y,12)),0);
+      let t='<div class="blk"><div class="blk-h"><b>'+title+'</b><span>'+LASTY+'년 '+(N===1?'1월':'1~'+N+'월')+' '+M(sumN(o,LASTY,N))+'</span></div><div class="twrap"><table class="rtable"><thead><tr><th>연도</th>';
+      for(let qq=0;qq<4;qq++){for(let k=1;k<=3;k++)t+='<th>'+(qq*3+k)+'월</th>';t+='<th class="qs">'+(qq+1)+'Q</th>';}
+      t+='<th class="tot">연간</th><th class="ytd">동기 계</th>'+(shl?'<th>'+shl+'<small>(1~'+N+'월)</small></th>':'<th>전년비<small>(1~'+N+'월)</small></th>')+'</tr></thead><tbody>';
+      ys.forEach(y=>{
+        t+='<tr'+(y===LASTY?' class="cur"':'')+'><td>'+y+(y===LASTY&&LASTM<12?'<small>~'+LASTM+'월</small>':'')+'</td>';
+        for(let qq=0;qq<4;qq++){let qs=0,got=0;
+          for(let k=1;k<=3;k++){const m=qq*3+k,av=m<=availM(y);t+='<td'+(av?'':' class="na"')+'>'+(av?M(o[y][m]):'–')+'</td>';if(av){qs+=o[y][m];got++;}}
+          t+='<td class="qs'+(got<3?' pt':'')+'">'+(got?M(qs):'–')+'</td>';}
+        const hasP=ys.indexOf(y-1)>=0,a=sumN(o,y,N),b2=hasP?sumN(o,y-1,N):null;
+        t+='<td class="tot">'+M(sumN(o,y,12))+'</td><td class="ytd">'+M(a)+'</td><td>'+(shl?(()=>{const dn=sumN(os,y,N);return dn?PCT(a/dn):'–';})():(hasP&&b2?gr(a,b2):'-'))+'</td></tr>';
+      });
+      return t+'</tbody></table></div></div>';
+    };
+    h+='<div class="brchip">'+brLabel(i)+'<small>'+DS_.sc[i]+(DS_.st[i]?' · '+DS_.st[i]:'')+'</small></div>';
+    ys.forEach(y=>{for(let m=1;m<=12;m++)lump[y][m]=tot[y][m]-sub[y][m];});
+    h+=block('전체 매출',tot)+block('일시불 <small>구독 제외</small>',lump,tot,'일시불 비중')+block('구독 <small>매입구분 E</small>',sub,tot,'구독 비중');
+    G.forEach((g,gi)=>{if(g==='기타')return;h+=block(g,arr[gi]);});
+    h+='<div class="subnote">전체에는 기타 그룹이 포함되어 PL~B2B 합과 차이가 날 수 있습니다. 지점 안의 B2B는 거래선·품목 기준으로 판정된 B2B 매출입니다.</div>';
+    body.innerHTML=h;return;
+  }
+  if(q){
+    const m=brMatches(q);
+    h+=m.length?'<div class="dnote"><b>검색 결과 '+m.length+'건</b>'+(m.length>40?' (상위 40건)':'')+' · 지점을 누르면 조회됩니다</div><div class="brlist">'+m.slice(0,40).map(brBtn).join('')+'</div>':'<div class="nodata">일치하는 지점이 없습니다. 지점명 또는 지점코드를 다시 확인해 주세요.</div>';
+  } else {
+    const top=DS_.sc.map((c,i)=>i).sort((a,b)=>brLast[b]-brLast[a]).slice(0,12);
+    h+='<div class="nodata" style="padding:18px 0">위 검색창에 지점명 또는 지점코드를 입력하세요.</div><div class="dnote"><b>'+LASTY+'년 매출 상위 지점</b></div><div class="brlist">'+top.map(brBtn).join('')+'</div>';
+  }
   body.innerHTML=h;
 }
 /* 채널별 매출: 기존 화면 유지 (전사 / 직영(=B2C+B2B) / B2C / B2B / 온라인 / 특수) */
@@ -981,37 +1082,46 @@ function renderFiveCh(){
   const b=B(),c=b.cube,R=c.rows,F=DS.f5,Y=LASTY,N=LASTM,body=$('#dBody');
   if(F.m==='rc'&&!b.pl){body.innerHTML='<div class="nodata">경상이익은 결산DB 기준(매출 환산/결산)에서만 제공됩니다.<br><button type="button" class="btn" data-set="basis:h">매출(환산)으로 보기</button></div>';return;}
   const CY=curYears(),ys=CY.ys,isEx=y=>CY.extra.indexOf(y)>=0,noV=y=>F.m==='rc'&&isEx(y);
-  const kind=F.m==='rc'?'gp':'sales',src=F.m==='rc'?R.rc:R[b.amt];
-  const r=monthlyBy('ch',CY.main,{chm:null},src);
-  if(CY.extra.length){const r2=monthlyBy('ch',CY.extra,{chm:null},DI.rows.a2,DI.rows);
-    r2.mp.forEach((o,k)=>{const t=r.mp.get(k);if(t)Object.assign(t,o);else r.mp.set(k,o);});
-    r.mp.forEach(o=>{CY.extra.forEach(y=>{if(!o[y])o[y]=new Array(13).fill(0);});});
-    Object.assign(r.tot,r2.tot);}
+  const shareMode=F.m==='lump'||F.m==='sub',kind=F.m==='rc'?'gp':'sales';
+  const subL=b.cube===DJ&&S.basis==='k'?'수수료':'구독';
+  const diff=(A,Bb)=>{const o=new Float64Array(A.length);for(let i=0;i<A.length;i++)o[i]=A[i]-Bb[i];return o;};
+  const srcOf=(w,R1,am,sb)=>w==='rc'?R1.rc:(w==='sub'?R1[sb]:(w==='lump'?diff(R1[am],R1[sb]):R1[am]));
+  function merged(w){
+    const r=monthlyBy('ch',CY.main,{chm:null},srcOf(w,R,b.amt,b.sub));
+    if(CY.extra.length){const r2=monthlyBy('ch',CY.extra,{chm:null},w==='rc'?DI.rows.a2:srcOf(w,DI.rows,'a2','b2'),DI.rows);
+      r2.mp.forEach((o,k)=>{const t=r.mp.get(k);if(t)Object.assign(t,o);else r.mp.set(k,o);});
+      r.mp.forEach(o=>{CY.extra.forEach(y=>{if(!o[y])o[y]=new Array(13).fill(0);});});
+      Object.assign(r.tot,r2.tot);}
+    return r;
+  }
+  const r=merged(F.m),rs=shareMode?merged('sales'):null;
   const synOf=(o,y)=>{let t=0;for(let m=1;m<=N;m++)t+=o[y][m];return t;};
   const first=ys[ys.length-1];
-  function block(title,o){
+  const shLab=F.m==='lump'?'일시불 비중':subL+' 비중';
+  function block(title,o,os){
     const sy=synOf(o,Y),sf=ys.length>1?synOf(o,first):null;
-    let h='<div class="blk"><div class="blk-h"><b>'+title+'</b><span>'+Y+'년 '+(N===1?'1월':'1~'+N+'월')+' '+E(sy)+'억'+(sf==null?'':' · '+first+'→'+Y+' '+dtxt(kind,sy,sf))+'</span></div><div class="twrap"><table class="rtable"><thead><tr><th>연도</th>';
+    let h='<div class="blk"><div class="blk-h"><b>'+title+'</b><span>'+Y+'년 '+(N===1?'1월':'1~'+N+'월')+' '+E(sy)+'억'+(sf==null||shareMode?'':' · '+first+'→'+Y+' '+dtxt(kind,sy,sf))+(shareMode&&os&&synOf(os,Y)?' · '+shLab+' '+PCT(sy/synOf(os,Y)):'')+'</span></div><div class="twrap"><table class="rtable"><thead><tr><th>연도</th>';
     for(let qq=0;qq<4;qq++){for(let k=1;k<=3;k++)h+='<th>'+(qq*3+k)+'월</th>';h+='<th class="qs">'+(qq+1)+'Q</th>';}
-    h+='<th class="tot">연간</th><th>전년비<small>(1~'+N+'월)</small></th></tr></thead><tbody>';
+    h+='<th class="tot">연간</th><th class="ytd">동기 계</th>'+(shareMode?'<th>'+shLab+'<small>(1~'+N+'월)</small></th>':'<th>전년비<small>(1~'+N+'월)</small></th>')+'</tr></thead><tbody>';
     ys.forEach(y=>{
       h+='<tr'+(y===Y?' class="cur"':'')+'><td>'+y+(y===LASTY&&LASTM<12?'<small>~'+LASTM+'월</small>':'')+'</td>';
       let ann=0;
       for(let qq=0;qq<4;qq++){let qs=0,got=0;
         for(let k=1;k<=3;k++){const m=qq*3+k,av=m<=availM(y);h+='<td'+(av?'':' class="na"')+'>'+(av&&!noV(y)?E(o[y][m]):'–')+'</td>';if(av&&!noV(y)){qs+=o[y][m];got++;ann+=o[y][m];}}
         h+='<td class="qs'+(got<3?' pt':'')+'">'+(got?E(qs):'–')+'</td>';}
-      const hasP=ys.indexOf(y-1)>=0;
-      h+='<td class="tot">'+(noV(y)?'–':E(ann))+'</td><td>'+(hasP&&!noV(y)&&isEx(y-1)===isEx(y)?dtxt(kind,synOf(o,y),synOf(o,y-1)):'-')+'</td></tr>';
+      const hasP=ys.indexOf(y-1)>=0,dn=shareMode&&os?synOf(os,y):0;
+      h+='<td class="tot">'+(noV(y)?'–':E(ann))+'</td><td class="ytd">'+(noV(y)?'–':E(synOf(o,y)))+'</td><td>'+(shareMode?(dn?PCT(synOf(o,y)/dn):'–'):(hasP&&!noV(y)&&isEx(y-1)===isEx(y)?dtxt(kind,synOf(o,y),synOf(o,y-1)):'-'))+'</td></tr>';
     });
     return h+'</tbody></table></div></div>';
   }
   const ci=n=>c.dims.ch.indexOf(n),zero=()=>{const o={};ys.forEach(y=>{o[y]=new Array(13).fill(0);});return o;};
-  const get=k=>r.mp.get(k)||zero();
-  const zy=zero();[ci('B2C'),ci('B2B')].forEach(k=>{const o=get(k);ys.forEach(y=>{for(let m=1;m<=12;m++)zy[y][m]+=o[y][m];});});
-  let h='<div class="dnote">'+(DS.view==='all'?'전체 ':'최근 ')+ys.length+'개년 · '+(CY.extra.length&&F.m!=='rc'?CY.extra[CY.extra.length-1]+'~'+CY.extra[0]+'년은 일보DB 매출 · ':'')+(F.m==='rc'?'경상이익(2022년~)':b.label)+' · 단위 억원 · 구분 채널 · 진행연도의 분기계·연간은 가용월 누계(이탤릭=일부 월) · 전년비는 1~'+N+'월 동기누계</div>';
-  const totT={};ys.forEach(y=>{totT[y]=r.tot[y];});
-  h+=block('전사',totT)+block('직영(=B2C+B2B)',zy);
-  CH_ORDER.forEach(k=>{h+=block(c.dims.ch[k],get(k));});
+  const getF=rr=>k=>rr.mp.get(k)||zero();
+  const zyF=rr=>{const z=zero();[ci('B2C'),ci('B2B')].forEach(k=>{const o=getF(rr)(k);ys.forEach(y=>{for(let m=1;m<=12;m++)z[y][m]+=o[y][m];});});return z;};
+  const totF=rr=>{const t={};ys.forEach(y=>{t[y]=rr.tot[y];});return t;};
+  const lab=F.m==='rc'?'경상이익':(F.m==='lump'?'일시불(구독 제외)':(F.m==='sub'?(subL==='수수료'?'구독(수수료)':'구독'):b.label));
+  let h='<div class="dnote">'+(DS.view==='all'?'전체 ':'최근 ')+ys.length+'개년 · '+(CY.extra.length&&F.m!=='rc'?CY.extra[CY.extra.length-1]+'~'+CY.extra[0]+'년은 일보DB 매출 · ':'')+lab+' · 기준 '+b.label+' · 단위 억원 · 구분 채널 · 진행연도의 분기계·연간은 가용월 누계(이탤릭=일부 월) · '+(shareMode?'비중 = '+lab+' ÷ 매출('+b.short+'), 1~'+N+'월 동기':'전년비는 1~'+N+'월 동기누계')+'</div>';
+  h+=block('전사',totF(r),shareMode?totF(rs):null)+block('직영(=B2C+B2B)',zyF(r),shareMode?zyF(rs):null);
+  CH_ORDER.forEach(k=>{h+=block(c.dims.ch[k],getF(r)(k),shareMode?getF(rs)(k):null);});
   body.innerHTML=h;
 }
 
@@ -1025,7 +1135,7 @@ function renderSide(){
   $('#basisHint').textContent=B().hint;
 }
 function renderFoot(){
-  $('#foot').innerHTML='※ v1.2 · 일보DB 2019.01~, 결산DB 2022.01~'+LASTY+'.'+(LASTM<10?'0'+LASTM:LASTM)+' 집계(2022년 이전은 일보DB 매출만 제공). 매출(환산)은 구독을 고객판매가로, 매출(결산)은 수수료 수취분만 반영하며 2025년부터 차이가 발생합니다. 손익은 결산DB 경상이익(영업외 손익 포함), 이익율 = 매출이익 ÷ 매출(결산)(매출 기준 선택과 무관)이며 일보 기준에는 제공되지 않습니다. 일시불 이익율 = (매출이익 − 구독 수수료) ÷ (매출(결산) − 구독 수수료), 구독 수수료는 결산DB 구독 열이며 기준(환산/결산)과 무관하게 같은 값입니다. 직영 = B2C + B2B. 그룹은 채널이 B2B이면 B2B, 그 외는 품목군(PL/PS/PI/PM/기타)이며, 채널·그룹은 일보DB 지점코드/품목 룰, 결산DB 직영구분/신그룹 기준이라 경계가 조금 다를 수 있습니다. 일시불/구독은 참고 수치입니다(결산=결산DB 구독 열, 환산=구독 열+환산−결산 차이, 일보=매입구분 E). 2024년 이하는 환산 데이터가 없어 구독이 작게 잡힐 수 있습니다. 수치는 원본 대조 전입니다.';
+  $('#foot').innerHTML='※ v1.9 · 일보DB 2019.01~, 결산DB 2019.01~'+LASTY+'.'+(LASTM<10?'0'+LASTM:LASTM)+' 집계. 매출(환산)은 구독을 고객판매가로, 매출(결산)은 수수료 수취분만 반영하며 2025년부터 차이가 발생합니다. 손익은 결산DB 경상이익(영업외 손익 포함), 이익율 = 매출이익 ÷ 매출(결산)(매출 기준 선택과 무관)이며 일보 기준에는 제공되지 않습니다. 일시불 이익율 = (매출이익 − 구독 수수료) ÷ (매출(결산) − 구독 수수료), 구독 수수료는 결산DB 구독 열이며 기준(환산/결산)과 무관하게 같은 값입니다. 직영 = B2C + B2B. 그룹은 채널이 B2B이면 B2B, 그 외는 품목군(PL/PS/PI/PM/기타)이며, 채널·그룹은 일보DB 지점코드/품목 룰, 결산DB 직영구분/신그룹 기준이라 경계가 조금 다를 수 있습니다. 일시불/구독은 참고 수치입니다(결산=결산DB 구독 열, 환산=구독 열+환산−결산 차이, 일보=매입구분 E). 2024년 이하는 환산 데이터가 없어 구독이 작게 잡힐 수 있습니다. 점포수는 직영 채널 월 판매 1천만원 이상 지점이며, 점포 구분 제외 지점(채널·물류 코드 등)은 집계하지 않습니다. 수치는 원본 대조 전입니다.';
 }
 function redrawTrend(){if(S.tview==='year')drawYear();else drawMonthly();}
 function fitTrend(){ // PC 2단: 좌측 추이 카드 높이를 우측 구성비 카드에 맞춤
@@ -1079,7 +1189,10 @@ $('#dCh').addEventListener('change',e=>{const p=CHP().find(x=>x[0]===e.target.va
 $('#dQ').addEventListener('input',e=>{DS.q=e.target.value;renderDetail();});
 $('#dBasis').addEventListener('change',e=>{S.basis=e.target.value;renderAll();});
 $('#fMet').addEventListener('change',e=>{DS.f5.m=e.target.value;renderDetail();});
+$('#bQ').addEventListener('input',e=>{DS.br.q=e.target.value;renderDetail();});
 $('#detail').addEventListener('click',e=>{
+  const bk=e.target.closest('[data-bk]');if(bk){DS.br.k=bk.dataset.bk;renderDetail();return;}
+  const bs=e.target.closest('[data-br]');if(bs){DS.br.code=+bs.dataset.br;DS.br.q='';$('#bQ').value='';renderDetail();$('#dBody').scrollTop=0;return;}
   const v=e.target.closest('[data-v]');if(v){DS.view=v.dataset.v;renderDetail();$('#dBody').scrollTop=0;return;}
   const fv=e.target.closest('[data-fv]');if(fv){DS.f5.v=fv.dataset.fv;renderDetail();$('#dBody').scrollTop=0;return;}
   const dr=e.target.closest('[data-drill]');
