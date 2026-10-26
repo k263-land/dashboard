@@ -43,6 +43,17 @@ for i in df.index[_m]:
     if df.at[i,'ch']!='B2B': df.at[i,'md']=_md.get(t) or str(_bn['md'].get(t,df.at[i,'md'])).strip()   # B2B 행은 원본 MD 유지
 print('결산 통합 적용 행',int(_m.sum()),'| 수량제외 코드',len(EXCL))
 
+# ---- 그룹·MD를 일보DB와 동일하게: 기초DB 현재 기준(통합코드 → 그룹코드 E열 / 담당MD L열, B2B는 M열) ----
+_GBC={100:'PL',200:'PS',300:'PI',400:'PM'}
+_bb=_b.drop_duplicates('org').set_index('org')
+_tc=df['code'].map(lambda c:int(CHG.get(int(c),int(c))) if pd.notna(c) else None)
+_gn=pd.to_numeric(_bb['gc'],errors='coerce')
+_gcur=_tc.map(lambda c:(_GBC.get(int(_gn.get(c)),'기타') if pd.notna(_gn.get(c)) else '기타') if c in _bb.index else None)
+_mcur=_tc.map(lambda c:(str(_bb['md'].get(c)).strip() if c in _bb.index and pd.notna(_bb['md'].get(c)) else None))
+_ok=_gcur.notna()&_mcur.notna()
+print('기초DB 기준 그룹 변경 행',int((_ok&(df['grp']!=_gcur)&(df['ch']!='B2B')).sum()),'| MD 변경 행',int((_ok&(df['md']!=_mcur)&(df['ch']!='B2B')).sum()),'| 기초DB 미매칭 행',int((~_ok).sum()))
+_nb=(df['ch']!='B2B')&_ok
+df.loc[_nb,'grp']=_gcur[_nb]; df.loc[_nb,'md']=_mcur[_nb]
 # B2B MD는 한재호·손국현만: 다른 MD면 기초DB B2B 담당(M열), 없으면 손국현
 _B2M={'한재호','손국현'}
 _bm=_b.drop_duplicates('org').set_index('org')['mdb'].astype(str).str.strip()
