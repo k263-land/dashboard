@@ -109,12 +109,12 @@ main{display:flex;flex-direction:column;gap:14px;min-width:0}
 .crow .nm{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .crow .vv{font-size:13px;font-weight:700;text-align:right}
 .crow .pp{font-size:12px;color:var(--ink2);min-width:46px;text-align:right}
-.mrow{display:grid;grid-template-columns:44px minmax(0,1fr) 72px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--grid);width:100%}
+.mrow{display:grid;grid-template-columns:44px minmax(0,1fr) 116px;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid var(--grid);width:100%}
 .mrow .nm{font-size:13px;font-weight:800}
 .mtrack{position:relative;height:14px;background:#f2f5f4;border-radius:7px}
 .mtrack i{position:absolute;top:2px;bottom:2px;border-radius:5px;left:0;background:#34405a}
 .mrow .vv{font-size:13px;font-weight:800;text-align:right}
-.mrow .vv .lp{display:block;font-size:10.5px;font-weight:600;color:var(--ink3);margin-top:1px}
+.mrow .vv{white-space:nowrap}.mrow .vv .lp{display:inline;font-size:10.5px;font-weight:600;color:var(--ink3);margin-left:5px}
 .ln{display:inline-block;width:18px;height:0;border-top:3px solid #34405a;vertical-align:middle;margin-right:4px}.ln.dsh{border-top:2px dashed #8a94a6}
 .ttable td.mgb,.dtable td.mgb{font-weight:800}
 .mrow.sel{background:#f3f6f5}
@@ -250,9 +250,10 @@ main{display:flex;flex-direction:column;gap:14px;min-width:0}
 .crow.chd span{text-align:right;font-weight:600}
 .crow.gtot{background:#f6f8f7;border-radius:10px;margin-bottom:2px}
 .crow.gtot .nm{font-weight:800}
-.mdiv{border-top:1.5px dashed #c9d4ce;margin:14px 0 8px}
+.mdiv{border-top:1.5px dashed #c9d4ce;margin:8px 0 6px}
+@media(max-width:480px){.mrow{grid-template-columns:40px minmax(0,1fr) 62px}.mrow.v{grid-template-columns:92px minmax(0,1fr) 62px}.mrow .vv .lp{display:block;margin-left:0;margin-top:0}}
 .msub{font-size:12px;font-weight:800;color:var(--ink2);margin:0 0 2px}
-.mrow.v{grid-template-columns:104px minmax(0,1fr) 56px}
+.mrow.v{grid-template-columns:104px minmax(0,1fr) 116px}
 .mrow.v .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(max-width:480px){.crow.gp{grid-template-columns:10px minmax(0,1fr) 46px 52px 60px;gap:4px;padding:7px 4px}.crow.gp .nm{font-size:12px}.crow.gp .cy{font-size:12.5px}.crow.gp .dd{font-size:11px}.mrow.v{grid-template-columns:84px minmax(0,1fr) 52px}}
 
@@ -274,7 +275,7 @@ main{display:flex;flex-direction:column;gap:14px;min-width:0}
 <main>
   <div class="top">
     <div>
-      <h1>판매·손익 현황<span class="sample">v2.0</span></h1>
+      <h1>판매·손익 현황<span class="sample">v2.1</span></h1>
     </div>
     <div class="top-actions">
       <button class="btn only-m" id="openSide" type="button">조건</button>
@@ -1140,7 +1141,7 @@ function renderSide(){
   $('#basisHint').textContent=B().hint;
 }
 function renderFoot(){
-  $('#foot').innerHTML='※ v2.0 · 일보DB 2019.01~, 결산DB 2019.01~'+LASTY+'.'+(LASTM<10?'0'+LASTM:LASTM)+' 집계. 매출(환산)은 구독을 고객판매가로, 매출(결산)은 수수료 수취분만 반영하며 2025년부터 차이가 발생합니다. 손익은 결산DB 경상이익(영업외 손익 포함), 이익율 = 매출이익 ÷ 매출(결산)(매출 기준 선택과 무관)이며 일보 기준에는 제공되지 않습니다. 일시불 이익율 = (매출이익 − 구독 수수료) ÷ (매출(결산) − 구독 수수료), 구독 수수료는 결산DB 구독 열이며 기준(환산/결산)과 무관하게 같은 값입니다. 직영 = B2C + B2B. 그룹은 채널이 B2B이면 B2B, 그 외는 품목군(PL/PS/PI/PM/기타)이며, 채널·그룹은 일보DB 지점코드/품목 룰, 결산DB 직영구분/신그룹 기준이라 경계가 조금 다를 수 있습니다. 일시불/구독은 참고 수치입니다(결산=결산DB 구독 열, 환산=구독 열+환산−결산 차이, 일보=매입구분 E). 2024년 이하는 환산 데이터가 없어 구독이 작게 잡힐 수 있습니다. 점포수는 직영 채널 월 판매 1천만원 이상 지점이며, 점포 구분 제외 지점(채널·물류 코드 등)은 집계하지 않습니다. 수치는 원본 대조 전입니다.';
+  $('#foot').innerHTML='※ v2.1 · 일보DB 2019.01~, 결산DB 2019.01~'+LASTY+'.'+(LASTM<10?'0'+LASTM:LASTM)+' 집계. 매출(환산)은 구독을 고객판매가로, 매출(결산)은 수수료 수취분만 반영하며 2025년부터 차이가 발생합니다. 손익은 결산DB 경상이익(영업외 손익 포함), 이익율 = 매출이익 ÷ 매출(결산)(매출 기준 선택과 무관)이며 일보 기준에는 제공되지 않습니다. 일시불 이익율 = (매출이익 − 구독 수수료) ÷ (매출(결산) − 구독 수수료), 구독 수수료는 결산DB 구독 열이며 기준(환산/결산)과 무관하게 같은 값입니다. 직영 = B2C + B2B. 그룹은 채널이 B2B이면 B2B, 그 외는 품목군(PL/PS/PI/PM/기타)이며, 채널·그룹은 일보DB 지점코드/품목 룰, 결산DB 직영구분/신그룹 기준이라 경계가 조금 다를 수 있습니다. 일시불/구독은 참고 수치입니다(결산=결산DB 구독 열, 환산=구독 열+환산−결산 차이, 일보=매입구분 E). 2024년 이하는 환산 데이터가 없어 구독이 작게 잡힐 수 있습니다. 점포수는 직영 채널 월 판매 1천만원 이상 지점이며, 점포 구분 제외 지점(채널·물류 코드 등)은 집계하지 않습니다. 수치는 원본 대조 전입니다.';
 }
 function redrawTrend(){if(S.tview==='year')drawYear();else drawMonthly();}
 function fitTrend(){ // PC 2단: 좌측 추이 카드 높이를 우측 구성비 카드에 맞춤

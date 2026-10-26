@@ -64,6 +64,7 @@ for y,f in files.items():
     g=itm.map({c:v['grp'] for c,v in items.items()}); g=g.where(g.isin(['PL','PS','PI','PM']),'기타'); g=g.where(ch!='B2B','B2B')   # 채널 B2B이면 그룹=B2B
     md=itm.map({c:v['md'] for c,v in items.items()}); mdb=itm.map({c:v['mdb'] for c,v in items.items()})
     md=md.where(~is_b2b,mdb).fillna('미지정').astype(str).str.strip().replace({'nan':'미지정','':'미지정'})
+    md=md.where(~is_b2b|md.isin(['한재호','손국현']),'손국현')   # B2B MD는 한재호·손국현만(그 외는 손국현)
     excl=None
     d=pd.DataFrame({'y':(df['년월']//100).astype(int),'m':(df['년월']%100).astype(int),'ch':ch,'grp':g,'it':it,'md':md,'st':st,'vd':corp,'sd':df['판매구분'].astype(int),'amt':df['금액'].fillna(0),'qty':df['수량'].fillna(0),'E':df['매입구분'].astype(str).str.strip().eq('E')})
     d=d[d.y==y]; parts.append(d)
